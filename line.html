@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="data:,">
+<title>らくらく受付（LINE連携イメージ）｜接骨院 事務アシスタント デモ</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Oswald:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#12161b; --sub:#5b636c; --line:#d8dde2; --stroke:#e3e7ea;
+    --accent:#1c5fa8; --deep:#0e2a47; --soft:#f4f6f8; --bg:#eef1f4;
+    --ok:#0f7b4f; --warn:#b3261e; --amber:#a06800;
+    --chat:#7494c0; --bubble:#ffffff; --mine:#8de055;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Noto Sans JP',sans-serif;color:var(--ink);background:var(--bg);
+    line-height:1.7;font-size:14px;-webkit-font-smoothing:antialiased;}
+  button{font-family:inherit;}
+
+  header{background:var(--ink);color:#fff;padding:14px 22px;display:flex;align-items:center;justify-content:space-between;
+    position:sticky;top:0;z-index:50;flex-wrap:wrap;gap:6px;}
+  header .brand{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;}
+  header .logo{font-family:'Oswald',sans-serif;font-weight:700;font-size:19px;letter-spacing:.06em;}
+  header .logo b{color:#6ea8e6;}
+  header .tag{font-size:12px;color:#9aa5b1;}
+  header .by{font-size:11px;color:#9aa5b1;}
+  header .by b{color:#fff;}
+
+  .demo-note{background:#fff8e1;border-bottom:1px solid #e5cf87;color:#6b5200;font-size:12px;padding:8px 22px;line-height:1.7;}
+  .demo-note b{color:#4a3900;}
+
+  .page{max-width:1180px;margin:0 auto;padding:16px;display:grid;grid-template-columns:400px 1fr;gap:18px;align-items:start;}
+  @media(max-width:920px){.page{grid-template-columns:1fr;}}
+
+  /* ===== スマホ枠（患者側） ===== */
+  .phone{background:#111;border-radius:0;padding:10px 10px 14px;box-shadow:none;border:1px solid #000;}
+  .phone .screen{background:var(--chat);display:flex;flex-direction:column;height:640px;}
+  .chat-head{background:rgba(0,0,0,.35);color:#fff;padding:10px 14px;font-size:13px;font-weight:700;display:flex;align-items:center;gap:8px;}
+  .chat-head .back{font-family:'Oswald',sans-serif;}
+  .chat-body{flex:1;overflow-y:auto;padding:12px 10px;}
+  .msg{display:flex;margin-bottom:10px;align-items:flex-end;gap:6px;}
+  .msg .avatar{width:30px;height:30px;background:var(--deep);color:#fff;font-size:11px;font-weight:700;
+    display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .msg .bubble{max-width:75%;background:var(--bubble);padding:8px 12px;font-size:12.5px;line-height:1.65;
+    border-radius:12px;border-top-left-radius:2px;white-space:pre-wrap;}
+  .msg.mine{justify-content:flex-end;}
+  .msg.mine .bubble{background:var(--mine);border-radius:12px;border-top-right-radius:2px;}
+  .msg .bubble b{color:var(--deep);}
+  .chat-quick{background:#f0f2f5;padding:8px;display:flex;flex-wrap:wrap;gap:6px;min-height:52px;border-top:1px solid #d5d9de;}
+  .chat-quick button{border:1px solid var(--accent);background:#fff;color:var(--accent);padding:7px 12px;
+    font-size:12px;font-weight:700;cursor:pointer;border-radius:14px;transition:.12s;}
+  .chat-quick button:hover{background:var(--accent);color:#fff;}
+  .chat-quick .done-btn{background:var(--accent);color:#fff;}
+  .restart{width:100%;margin-top:10px;border:1px solid #666;background:#222;color:#ddd;padding:9px;font-size:12px;cursor:pointer;}
+  .restart:hover{background:#333;}
+
+  /* ===== 院側ビュー ===== */
+  .panel{background:#fff;border:1px solid var(--stroke);margin-bottom:14px;}
+  .panel > h2{background:var(--accent);color:#fff;font-size:13px;font-weight:700;padding:9px 14px;letter-spacing:.04em;
+    display:flex;align-items:center;justify-content:space-between;gap:8px;}
+  .panel > h2 .en{font-family:'Oswald',sans-serif;font-size:10px;letter-spacing:.16em;opacity:.75;font-weight:500;}
+  .pbody{padding:14px;}
+  .judge{border-left:4px solid var(--line);background:var(--soft);padding:12px 14px;}
+  .judge.ok{border-left-color:var(--ok);background:#f1f8f4;}
+  .judge.ng{border-left-color:var(--warn);background:#fdf3f2;}
+  .judge.warn{border-left-color:var(--amber);background:#fff8e1;}
+  .judge b{display:block;font-size:13.5px;margin-bottom:3px;}
+  .judge .why{font-size:11.5px;color:var(--sub);line-height:1.65;}
+  .empty{color:#8b939b;font-size:12.5px;}
+  .cause-box{border:1px solid var(--line);background:#fff;padding:10px 12px;font-size:13px;line-height:1.8;min-height:64px;}
+  .checkrow{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;}
+  .checkrow .c{font-size:11.5px;padding:4px 10px;border:1px solid var(--line);background:var(--soft);color:var(--sub);}
+  .checkrow .c.pass{background:#f1f8f4;border-color:#bcd8c5;color:var(--ok);font-weight:700;}
+  .kv{display:grid;grid-template-columns:110px 1fr;gap:6px 12px;font-size:12.5px;margin-top:8px;}
+  .kv .k{color:var(--sub);font-weight:700;font-size:11.5px;}
+  .next{background:var(--deep);color:#fff;padding:12px 16px;font-size:12.5px;line-height:1.7;}
+  .next b{color:#8fc1f0;}
+  .next a{color:#ffd479;font-weight:700;}
+  .savebar{background:var(--deep);color:#fff;padding:12px 16px;margin-bottom:14px;}
+  .savebar .sv-main{font-size:13px;font-weight:700;line-height:1.6;}
+  .savebar .sv-main b{color:#8fc1f0;}
+  .savebar .sv-note{font-size:10.5px;color:#9aa5b1;margin-top:5px;line-height:1.5;}
+
+  .foot{padding:16px 22px 30px;font-size:11px;color:var(--sub);line-height:1.8;max-width:1180px;margin:0 auto;}
+  .foot b{color:var(--ink);}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <span class="logo">JUSEI<b>DESK</b>｜らくらく受付</span>
+    <span class="tag">患者さまがトークで答えるだけ — 院には「返戻されにくい下書き」が届く（連携イメージ）</span>
+  </div>
+  <span class="by">Powered by <b>気持ち市場</b></span>
+</header>
+
+<div class="demo-note">
+  <b>デモ画面です。</b>左のスマホ画面は<b>メッセージアプリ連携のイメージ</b>で、実際のLINEアプリ・LINEヤフー株式会社のサービスとは関係ありません（LINEは同社の商標です）。
+  施設・患者・データはすべて架空。入力はこのブラウザの中だけで処理され、外部へ送信されません。実運用にはLINE公式アカウント等のご契約・API接続（御社名義）が必要です。
+</div>
+
+<div class="page">
+
+  <!-- ===== 左：患者のスマホ ===== -->
+  <div>
+    <div class="phone">
+      <div class="screen">
+        <div class="chat-head"><span class="back">＜</span> サンプル接骨院（デモ）</div>
+        <div class="chat-body" id="chat"></div>
+        <div class="chat-quick" id="quick"></div>
+      </div>
+    </div>
+    <button class="restart" id="restart" type="button">最初からやり直す</button>
+  </div>
+
+  <!-- ===== 右：院側に届くもの ===== -->
+  <div>
+    <div class="savebar">
+      <div class="sv-main">患者さまが待ち時間ゼロで答える → 来院前に<b>保険の仕分け・負傷原因文の下書き</b>が院に届いている状態を作ります</div>
+      <div class="sv-note">受付での聞き取り・書き取りが不要になり、返戻の急所「いつ・どこで・どうして」が最初から揃います。柔整特化のトーク問診は主要レセコン・予約システムに見当たらない機能です（2026年7月 当社調査）。</div>
+    </div>
+
+    <div class="panel">
+      <h2>院側に届く：保険適用の自動判定<span class="en">TRIAGE</span></h2>
+      <div class="pbody" id="v-judge"><div class="empty">左のトークが進むと、ここに判定が届きます。</div></div>
+    </div>
+
+    <div class="panel">
+      <h2>院側に届く：負傷原因文の下書き<span class="en">CAUSE DRAFT</span></h2>
+      <div class="pbody">
+        <div class="cause-box" id="v-cause"><span class="empty">左のトークが進むと、ここに下書きが届きます。</span></div>
+        <div class="checkrow" id="v-check"></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>院側に届く：受付メモ<span class="en">INTAKE MEMO</span></h2>
+      <div class="pbody">
+        <div class="kv" id="v-memo"><span class="empty" style="grid-column:1/-1;">—</span></div>
+      </div>
+    </div>
+
+    <div class="next">
+      ここから先（施術録12項目の下書き・2026年7月改定対応の料金計算・月末レセプトボード）は
+      <b>事務アシスタント本体</b>に引き継がれます → <a href="index.html">本体デモを開く</a><br>
+      <span style="font-size:11px;color:#9aa5b1;">このデモの文章はルールベースの組み立てです。実運用ではAIを接続し、自由入力の会話からも下書きを作れます（API契約が必要）。</span>
+    </div>
+  </div>
+
+</div>
+
+<div class="foot">
+  <b>このデモについて</b><br>
+  ・スマホ画面はメッセージアプリ連携のイメージです。LINEはLINEヤフー株式会社の商標であり、本デモは同社のサービスではありません。実運用はLINE公式アカウント（御社契約）＋API接続で実装します。<br>
+  ・患者・施設・データはすべて架空。処理はブラウザ内で完結し、外部送信・保存はありません（実運用で患者情報を扱う場合は3省2ガイドラインに沿った構成を別途ご提案）。<br>
+  ・判定・文章はすべて「下書き・参考」です。保険適用の最終判断・施術録・申請書の確定は施術者が行います。<br><br>
+  <b>株式会社気持ち市場</b>（大分県・AI業務自動化／システム開発）
+</div>
+
+<script>
+/* =======================================================================
+   トーク問診（すべて架空・ブラウザ内完結）。判定・文章ルールは本体デモと同じ
+   ======================================================================= */
+var S={ kind:null, when:null, place:null, action:null, parts:[], syms:[] };
+
+var PLACES=['自宅','自宅の階段','職場','通勤の途中','スポーツ中','道路・歩道'];
+var ACTIONS=[
+  {t:'階段を踏み外した', te:'階段を踏み外し'},
+  {t:'つまずいて転倒した', te:'段差でつまずいて転倒し'},
+  {t:'重い物を持ち上げた', te:'重い荷物を持ち上げた際に'},
+  {t:'急に振り向いた', te:'急に振り向いた際に'},
+  {t:'運動中にひねった', te:'運動中に踏み込んだ際に'},
+  {t:'ぶつかった', te:'人と接触して転倒し'}
+];
+var PARTS=['右足首','左足首','右膝','左膝','腰','右肩','左肩','首'];
+var SYMS=['腫れている','押すと痛い','動かすと痛い','歩くと痛い'];
+var WHENS=['今日','きのう','おととい','それより前'];
+
+var chat=document.getElementById('chat');
+var quick=document.getElementById('quick');
+
+function esc(s){
+  return String(s).replace(/[&<>"']/g,function(c){
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+  });
+}
+function bot(text, cb){
+  setTimeout(function(){
+    var d=document.createElement('div');
+    d.className='msg';
+    d.innerHTML='<span class="avatar">院</span><span class="bubble">'+text+'</span>';
+    chat.appendChild(d);
+    chat.scrollTop=chat.scrollHeight;
+    if(cb) cb();
+  }, 420);
+}
+function mine(text){
+  var d=document.createElement('div');
+  d.className='msg mine';
+  d.innerHTML='<span class="bubble">'+esc(text)+'</span>';
+  chat.appendChild(d);
+  chat.scrollTop=chat.scrollHeight;
+}
+function choices(items, onPick, opt){
+  quick.innerHTML='';
+  items.forEach(function(it){
+    var label=(typeof it==='string')?it:it.t;
+    var b=document.createElement('button');
+    b.type='button'; b.textContent=label;
+    b.addEventListener('click', function(){ mine(label); onPick(it); });
+    quick.appendChild(b);
+  });
+  if(opt && opt.done){
+    var d=document.createElement('button');
+    d.type='button'; d.className='done-btn'; d.textContent=opt.done;
+    d.addEventListener('click', function(){ mine(opt.done); opt.onDone(); });
+    quick.appendChild(d);
+  }
+}
+function clearChoices(){ quick.innerHTML=''; }
+
+/* ---- 会話の流れ ---- */
+function start(){
+  chat.innerHTML=''; clearChoices();
+  S={ kind:null, when:null, place:null, action:null, parts:[], syms:[] };
+  renderSide();
+  bot('こんにちは、サンプル接骨院です🙂\nご来院前の受付をお手伝いします。\n<b>今日はどうされましたか？</b>', function(){
+    choices([
+      {t:'ケガをした', k:'acute'},
+      {t:'骨折したかもしれない', k:'fract'},
+      {t:'慢性的なこり・疲れ', k:'chronic'},
+      {t:'交通事故にあった', k:'traffic'}
+    ], function(it){
+      S.kind=it.k; renderSide();
+      if(it.k==='chronic'){ askDone(); return; }
+      askWhen();
+    });
+  });
+}
+function askWhen(){
+  bot('おけがをしたのは<b>いつ</b>ですか？', function(){
+    choices(WHENS, function(w){ S.when=w; renderSide(); askPlace(); });
+  });
+}
+function askPlace(){
+  bot('<b>どこで</b>のことですか？', function(){
+    choices(PLACES, function(p){ S.place=p; renderSide(); askAction(); });
+  });
+}
+function askAction(){
+  bot('<b>何をして</b>痛めましたか？', function(){
+    choices(ACTIONS, function(a){ S.action=a; renderSide(); askParts(); });
+  });
+}
+function askParts(){
+  bot('<b>どこが</b>痛みますか？（複数OK。選び終えたら「選択おわり」）', function(){
+    choices(PARTS, function(p){
+      if(S.parts.indexOf(p)<0) S.parts.push(p);
+      renderSide();
+    }, {done:'選択おわり', onDone:function(){
+      if(!S.parts.length){ bot('1か所だけでも教えてください。'); askParts(); return; }
+      askSyms();
+    }});
+  });
+}
+function askSyms(){
+  bot('いまの<b>症状</b>に近いものはありますか？（複数OK）', function(){
+    choices(SYMS, function(s){
+      if(S.syms.indexOf(s)<0) S.syms.push(s);
+      renderSide();
+    }, {done:'選択おわり', onDone:function(){ askDone(); }});
+  });
+}
+function askDone(){
+  clearChoices();
+  renderSide();
+  var j=judgeInfo();
+  var msg='';
+  if(S.kind==='chronic'){
+    msg='ありがとうございます。慢性的なこり・お疲れには<b>自費の整体・調整メニュー</b>をご用意しています（健康保険は急性のケガのみ対象のため）。\nご来院時に受付へお声がけください🙂';
+  } else if(S.kind==='fract'){
+    msg='ありがとうございます。骨折・脱臼の疑いがある場合、<b>お医者さまの同意</b>が必要になることがあります（応急手当は可能です）。\nこのままご来院ください。受付の準備をしてお待ちしています。';
+  } else if(S.kind==='traffic'){
+    msg='ありがとうございます。交通事故のおけがは<b>自賠責保険の手続き</b>のご案内ができます。\n事故の日時と相手方の情報がわかるものをお持ちください。';
+  } else {
+    msg='ありがとうございます。<b>健康保険が使える見込み</b>です。\nこのままご来院ください。受付の準備をしてお待ちしています🙂';
+  }
+  if(S.place==='職場'||S.place==='通勤の途中'){
+    msg+='\n\n※お仕事中・通勤中のおけがは<b>労災保険</b>の対象になる場合があります。受付で確認させてください。';
+  }
+  bot(msg, function(){
+    bot('<span style="font-size:11px;color:#8b939b;">— ここまでの内容が院の受付に届きました（右の画面）。実際の症状の確認・保険適用の最終判断は、ご来院時に施術者が行います —</span>');
+  });
+}
+
+/* ---- 院側ビュー ---- */
+function buildCause(){
+  if(!S.when||!S.place||!S.action||!S.parts.length) return null;
+  var today=new Date();
+  var offset={'今日':0,'きのう':1,'おととい':2}[S.when];
+  var dj;
+  if(offset===undefined){ dj='受傷日は来院時に確認（「それより前」と回答）'; }
+  else {
+    var d=new Date(today.getTime()-offset*86400000);
+    dj=(d.getMonth()+1)+'月'+d.getDate()+'日';
+  }
+  var place=S.place, act=S.action;
+  if(place.indexOf('階段')>=0 && act.te.indexOf('階段')>=0) place=place.replace('の階段','');
+  var t=dj+'、'+place+'で'+act.te+'、'+S.parts.join('・')+'を負傷した。';
+  if(S.syms.length) t+='直後から'+S.syms.map(function(s){return s.replace('している','');}).join('・')+'の症状が出現し、持続している。';
+  return t;
+}
+function judgeInfo(){
+  if(S.kind==='chronic') return {cls:'ng', title:'健康保険（療養費）対象外 → 自費メニューをご案内', why:'慢性的なこり・疲労は療養費の支給対象外。入口で仕分けることで不支給・返納を防ぎ、自費メニューへ自然に案内できます。'};
+  if(S.kind==='fract') return {cls:'warn', title:'骨折・脱臼の疑い → 医師の同意の確認が必要', why:'応急手当を除き医師の同意が必須。同意した医師名・同意日は施術録と申請書摘要欄に記載します。'};
+  if(S.kind==='traffic') return {cls:'warn', title:'交通事故 → 第三者行為届＋自賠責の扱い', why:'健康保険を使う場合は保険者への「第三者行為による傷病届」が必要。自賠責との調整があります。'};
+  if(S.kind==='acute') return {cls:'ok', title:'急性の外傷 → 捻挫・打撲として保険適用の見込み', why:'受領委任で窓口は自己負担分のみ。最終判断は来院時の施術者の判断です。'};
+  return null;
+}
+function renderSide(){
+  var vj=document.getElementById('v-judge');
+  var j=judgeInfo();
+  if(!j){ vj.innerHTML='<div class="empty">左のトークが進むと、ここに判定が届きます。</div>'; }
+  else {
+    var extra='';
+    if(S.place==='職場'||S.place==='通勤の途中'){
+      extra='<div class="judge warn" style="margin-top:8px;"><b>労災の可能性</b><div class="why">業務上・通勤災害は健保でなく労災の対象。受付で必ず確認します（二重請求は不正）。</div></div>';
+    }
+    vj.innerHTML='<div class="judge '+j.cls+'"><b>'+j.title+'</b><div class="why">'+j.why+'</div></div>'+extra;
+  }
+
+  var cause=buildCause();
+  var vc=document.getElementById('v-cause');
+  var ck=document.getElementById('v-check');
+  if(S.kind==='chronic'){
+    vc.innerHTML='<span class="empty">自費のため負傷原因文（保険用）は作成しません。</span>';
+    ck.innerHTML='';
+  } else if(cause){
+    vc.textContent=cause;
+    var items=[['いつ', S.when && S.when!=='それより前'],['どこで', !!S.place],['どうして', !!S.action],['部位', S.parts.length>0]];
+    ck.innerHTML=items.map(function(it){
+      return '<span class="c '+(it[1]?'pass':'')+'">'+(it[1]?'✓ ':'△ ')+it[0]+'</span>';
+    }).join('');
+    if(S.when==='それより前'){
+      ck.innerHTML+='<span class="c" style="color:var(--amber);border-color:#e5cf87;background:#fff8e1;">受傷日は来院時に確認</span>';
+    }
+  } else {
+    vc.innerHTML='<span class="empty">左のトークが進むと、ここに下書きが届きます。</span>';
+    ck.innerHTML='';
+  }
+
+  var memo=document.getElementById('v-memo');
+  var rows=[];
+  var kindName={acute:'急性の外傷', fract:'骨折・脱臼の疑い', chronic:'慢性（自費）', traffic:'交通事故'}[S.kind];
+  if(kindName) rows.push(['区分', kindName]);
+  if(S.when) rows.push(['いつ', S.when]);
+  if(S.place) rows.push(['どこで', S.place]);
+  if(S.action) rows.push(['きっかけ', S.action.t]);
+  if(S.parts.length) rows.push(['部位', S.parts.join('・')]);
+  if(S.syms.length) rows.push(['症状', S.syms.join('・')]);
+  memo.innerHTML=rows.length
+    ? rows.map(function(r){return '<span class="k">'+r[0]+'</span><span>'+esc(r[1])+'</span>';}).join('')
+    : '<span class="empty" style="grid-column:1/-1;">—</span>';
+}
+
+document.getElementById('restart').addEventListener('click', start);
+start();
+</script>
+</body>
+</html>
