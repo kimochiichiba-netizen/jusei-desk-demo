@@ -55,6 +55,24 @@
   .chat-quick .done-btn{background:var(--accent);color:#fff;}
   .restart{flex:1;border:1px solid #666;background:#222;color:#ddd;padding:9px;font-size:12px;cursor:pointer;}
   .restart:hover{background:#333;}
+  .modebar{display:flex;gap:0;margin-bottom:10px;border:1px solid var(--accent);}
+  .modebar button{flex:1;border:0;background:#fff;color:var(--accent);padding:10px;font-size:12.5px;font-weight:700;cursor:pointer;}
+  .modebar button.on{background:var(--accent);color:#fff;}
+  #voicebox{border:1px solid var(--accent);background:#f7fafd;padding:12px;margin-top:10px;}
+  #voicebox label{display:block;font-size:11.5px;font-weight:700;color:var(--deep);margin-bottom:6px;}
+  .voicerow{display:flex;gap:6px;}
+  .voicerow input{flex:1;border:1px solid var(--line);padding:9px 10px;font-size:13px;}
+  .voicerow button{border:1px solid var(--accent);background:#fff;color:var(--accent);padding:9px 12px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;}
+  .voicerow button:hover:not(:disabled){background:var(--accent);color:#fff;}
+  .voicerow button:disabled{opacity:.4;cursor:default;}
+  .voicerow #mic-btn.rec{background:var(--warn);border-color:var(--warn);color:#fff;}
+  #voice-status{font-size:10.5px;color:#8b939b;margin-top:6px;line-height:1.5;}
+  .threeway{background:#fff;border:1px solid var(--stroke);padding:12px 16px;margin-bottom:14px;}
+  .threeway .tw-t{font-size:12.5px;font-weight:700;color:var(--deep);margin-bottom:6px;}
+  .threeway .tw-r{display:flex;gap:8px;align-items:baseline;font-size:12px;padding:3px 0;}
+  .threeway .tw-n{font-family:'Oswald',sans-serif;font-weight:700;color:var(--accent);width:16px;flex-shrink:0;}
+  .threeway .tw-time{margin-left:auto;font-family:'Oswald','Noto Sans JP',sans-serif;font-size:11.5px;color:var(--ok);font-weight:700;white-space:nowrap;}
+  .threeway .tw-note{font-size:10.5px;color:#8b939b;margin-top:5px;line-height:1.5;}
   .phone-btns{display:flex;gap:8px;margin-top:10px;}
   #back-btn{flex:1;border:1px solid var(--accent);background:#fff;color:var(--accent);padding:9px;font-size:12px;font-weight:700;cursor:pointer;}
   #back-btn:hover{background:var(--accent);color:#fff;}
@@ -136,12 +154,25 @@
 
   <!-- ===== 左：患者のスマホ ===== -->
   <div class="phone-col">
+    <div class="modebar">
+      <button id="mode-self" class="on" type="button">患者さま本人</button>
+      <button id="mode-staff" type="button">スタッフ代行（音声OK）</button>
+    </div>
     <div class="phone">
       <div class="screen">
         <div class="chat-head"><span class="back">＜</span> サンプル接骨院（デモ）</div>
         <div class="chat-body" id="chat"></div>
         <div class="chat-quick" id="quick"></div>
       </div>
+    </div>
+    <div id="voicebox" style="display:none;">
+      <label>患者さまの言葉をそのまま入力（🎤音声 または キーボード）→ 自動で問診に反映</label>
+      <div class="voicerow">
+        <input id="voice-text" type="text" placeholder="例：きのう家の階段で足首をひねって、腫れて歩くと痛い">
+        <button id="mic-btn" type="button">🎤 音声</button>
+        <button id="voice-apply" type="button">反映</button>
+      </div>
+      <div id="voice-status">テキスト入力は端末内だけで処理されます。🎤はブラウザ（Chrome）の音声認識機能を使うため、音声はブラウザの認識サービスで処理されます。</div>
     </div>
     <div class="phone-btns">
       <button id="back-btn" type="button">← 1つ前の質問に戻る</button>
@@ -154,6 +185,14 @@
     <div class="savebar">
       <div class="sv-main">患者さまが待ち時間ゼロで答える → 来院前に<b>保険の仕分け・負傷原因文の下書き</b>が院に届いている状態を作ります</div>
       <div class="sv-note">受付での聞き取り・書き取りが不要になり、返戻の急所「いつ・どこで・どうして」が最初から揃います。柔整特化のトーク問診は主要レセコン・予約システムに見当たらない機能です（2026年7月 当社調査）。</div>
+    </div>
+
+    <div class="threeway">
+      <div class="tw-t">受付のやり方は3通り — タブレットが苦手な方でも大丈夫です</div>
+      <div class="tw-r"><span class="tw-n">1</span><span>患者さまが来院前にスマホで答える（このトーク）</span><span class="tw-time">院側の手間 0分</span></div>
+      <div class="tw-r"><span class="tw-n">2</span><span>スタッフが口頭で伺いながら代わりにタップ</span><span class="tw-time">約30秒</span></div>
+      <div class="tw-r"><span class="tw-n">3</span><span>患者さまの言葉をそのまま音声・文字で入力 → 自動で問診に反映</span><span class="tw-time">数秒</span></div>
+      <div class="tw-note">どの方法でも同じ問診票・負傷原因文の下書きができます。紙の問診票は「書いてもらった後にスタッフが転記」が必要ですが、この3通りはどれも転記ゼロです。</div>
     </div>
 
     <div class="panel">
@@ -484,6 +523,129 @@ function renderMonshin(){
     return '<div class="mrow todo"><span class="ml">'+esc(r.l)+'</span><span class="mv">'+esc(r.todo||'来院時にご記入')+'</span></div>';
   }).join('');
 }
+
+/* ---- スタッフ代行モード＋話し言葉入力（タブレットが苦手な方への切り返し実演） ---- */
+var staffMode=false;
+function setMode(staff){
+  staffMode=staff;
+  document.getElementById('mode-self').classList.toggle('on', !staff);
+  document.getElementById('mode-staff').classList.toggle('on', staff);
+  document.getElementById('voicebox').style.display = staff ? '' : 'none';
+  if(staff){
+    bot('<b>スタッフ代行モード</b>です。患者さまに口頭でお伺いしながら、代わりにタップしてください。\nまたは下の欄に<b>患者さまの言葉をそのまま</b>入れると（音声🎤も可）、自動で問診に反映します。');
+  }
+}
+document.getElementById('mode-self').addEventListener('click', function(){ setMode(false); });
+document.getElementById('mode-staff').addEventListener('click', function(){ setMode(true); });
+
+/* 話し言葉からのキーワード抽出（端末内処理・ルールベース） */
+function parseSpeech(t){
+  var r={};
+  if(/骨折|折れた/.test(t)) r.kind='fract';
+  else if(/事故|車に|バイク/.test(t)) r.kind='traffic';
+  else if(/肩こり|こり|疲れ/.test(t)) r.kind='chronic';
+  else r.kind='acute';
+  if(/今日|きょう|さっき/.test(t)) r.when='今日';
+  else if(/昨日|きのう/.test(t)) r.when='きのう';
+  else if(/一昨日|おととい/.test(t)) r.when='おととい';
+  else if(/先週|前に|この間/.test(t)) r.when='それより前';
+  if(/階段/.test(t)) r.place='自宅の階段';
+  else if(/家|自宅/.test(t)) r.place='自宅';
+  else if(/仕事|職場|作業/.test(t)) r.place='職場';
+  else if(/通勤/.test(t)) r.place='通勤の途中';
+  else if(/運動|スポーツ|部活|練習|試合/.test(t)) r.place='スポーツ中';
+  else if(/道|歩道|散歩/.test(t)) r.place='道路・歩道';
+  if(/踏み外/.test(t)) r.action='階段を踏み外した';
+  else if(/つまず|転ん|転倒/.test(t)) r.action='つまずいて転倒した';
+  else if(/持ち上げ|重い/.test(t)) r.action='重い物を持ち上げた';
+  else if(/振り向/.test(t)) r.action='急に振り向いた';
+  else if(/ぶつか/.test(t)) r.action='ぶつかった';
+  else if(/ひねっ|捻っ|くじ/.test(t)) r.action='運動中にひねった';
+  r.parts=[];
+  [['右足首',/右.{0,2}足首/],['左足首',/左.{0,2}足首/],['右膝',/右.{0,2}(ひざ|膝)/],['左膝',/左.{0,2}(ひざ|膝)/],
+   ['腰',/腰/],['右肩',/右.{0,2}肩/],['左肩',/左.{0,2}肩/],['首',/首/]].forEach(function(m){
+    if(m[1].test(t) && r.parts.indexOf(m[0])<0){
+      if(m[0]==='首' && /足首/.test(t) && !/(^|[^足])首/.test(t)) return;   // 「足首」の「首」を誤検出しない
+      r.parts.push(m[0]);
+    }
+  });
+  if(!r.parts.length && /足首/.test(t)) r.parts.push('右足首');   // 左右不明→仮で右（来院時に確認）
+  r.syms=[];
+  if(/腫れ/.test(t)) r.syms.push('腫れている');
+  if(/押す/.test(t)) r.syms.push('押すと痛い');
+  if(/動かす/.test(t)) r.syms.push('動かすと痛い');
+  if(/歩く|歩いた/.test(t)) r.syms.push('歩くと痛い');
+  return r;
+}
+function applySpeech(text){
+  if(!text || !text.trim()) return;
+  var r=parseSpeech(text);
+  mine(text);
+  if(r.kind) S.kind=r.kind;
+  if(r.when) S.when=r.when;
+  if(r.place) S.place=r.place;
+  if(r.action){ S.action=ACTIONS.filter(function(a){return a.t===r.action;})[0]||S.action; }
+  r.parts.forEach(function(p){ if(S.parts.indexOf(p)<0) S.parts.push(p); });
+  r.syms.forEach(function(s){ if(S.syms.indexOf(s)<0) S.syms.push(s); });
+  renderSide();
+  var got=[];
+  if(r.when) got.push('いつ='+r.when);
+  if(r.place) got.push('どこで='+r.place);
+  if(r.action) got.push('きっかけ='+r.action);
+  if(r.parts.length) got.push('部位='+r.parts.join('・'));
+  if(r.syms.length) got.push('症状='+r.syms.join('・'));
+  bot('お話から読み取りました：<b>'+ (got.length?esc(got.join('／')):'（読み取れる項目がありませんでした）') +'</b>\n足りないところだけ、続けてお伺いします。', function(){
+    clearChoices();
+    if(S.kind==='chronic'){ askDone(); return; }
+    if(!S.when){ askWhen(); return; }
+    if(!S.place){ askPlace(); return; }
+    if(!S.action){ askAction(); return; }
+    if(!S.parts.length){ askParts(); return; }
+    if(!S.syms.length){ askSyms(); return; }
+    if(!S.hist.length){ askHist(); return; }
+    askDone();
+  });
+  document.getElementById('voice-text').value='';
+}
+document.getElementById('voice-apply').addEventListener('click', function(){
+  applySpeech(document.getElementById('voice-text').value);
+});
+document.getElementById('voice-text').addEventListener('keydown', function(e){
+  if(e.key==='Enter') applySpeech(this.value);
+});
+
+/* 音声認識（Chrome）。使えない環境ではテキスト入力に誘導 */
+(function(){
+  var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  var btn=document.getElementById('mic-btn');
+  var st=document.getElementById('voice-status');
+  if(!SR){
+    btn.disabled=true;
+    st.textContent='この環境では音声認識を使えないため、キーボード入力をお使いください（テキストは端末内だけで処理されます）。';
+    return;
+  }
+  var rec=null, listening=false;
+  btn.addEventListener('click', function(){
+    if(listening){ if(rec) rec.stop(); return; }
+    rec=new SR();
+    rec.lang='ja-JP'; rec.interimResults=false; rec.maxAlternatives=1;
+    listening=true; btn.classList.add('rec'); btn.textContent='■ 停止';
+    st.textContent='聞き取り中… 患者さまの言葉をそのままどうぞ。';
+    rec.onresult=function(e){
+      var text=e.results[0][0].transcript;
+      document.getElementById('voice-text').value=text;
+      applySpeech(text);
+    };
+    rec.onerror=function(e){
+      st.textContent='聞き取れませんでした（'+e.error+'）。もう一度押すか、キーボードで入力してください。';
+    };
+    rec.onend=function(){
+      listening=false; btn.classList.remove('rec'); btn.textContent='🎤 音声';
+      if(st.textContent.indexOf('聞き取り中')===0) st.textContent='テキスト入力は端末内だけで処理されます。🎤はブラウザ（Chrome）の音声認識機能を使うため、音声はブラウザの認識サービスで処理されます。';
+    };
+    rec.start();
+  });
+})();
 
 /* ---- 1つ前の質問に戻る（答えた項目を後ろから1つ消して聞き直す） ---- */
 document.getElementById('back-btn').addEventListener('click', function(){

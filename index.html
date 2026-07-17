@@ -5612,6 +5612,7 @@ function applySkin(name){
         <input id="bd-search" type="text" placeholder="患者名で検索（ひらがなでも探せます）"
                style="flex:1;min-width:220px;border:1px solid var(--line);padding:8px 12px;font-size:13px;">
         <span id="bd-hit" style="font-size:11.5px;color:var(--sub);"></span>
+        <button id="bd-csv" class="regen" type="button" style="margin-top:0;">Excelへ書き出し（CSV）</button>
       </div>
       <div style="overflow-x:auto;">
         <table class="bd" id="board">
@@ -6175,6 +6176,42 @@ function renderBoard(){
     '<span class="lbl">今月のレセプト</span><span class="big">'+receiptCount+'<small> 件</small></span>'+
     '<span class="lbl" style="margin-left:auto;">行をクリックすると申請書の見本を表示します</span>';
 }
+
+/* 月末ボードのExcel書き出し（CSV・BOM付きUTF-8＝Excelでそのまま開ける） */
+function toBoardCSV(){
+  var d=deadlineInfo();
+  var all=[currentPatientRow()].concat(BOARD);
+  var rows=[
+    ['※デモ出力：患者・数値はすべて架空のサンプルです。実運用データではありません（株式会社気持ち市場 JUSEI DESKデモ）'],
+    ['レセプト提出期限', d.due+'（あと'+d.days+'日）'],
+    [],
+    ['患者名','負傷名','今月の施術回数','委任欄の署名','負傷原因の記載','医師の同意','状態','注意']
+  ];
+  all.forEach(function(p){
+    var issues=rowStatus(p);
+    var risk=[];
+    if(isRisk(p)) risk.push('償還払いリスク（'+p.m12.months+'か月・'+p.m12.parts+'部位）');
+    if(isFreq(p)) risk.push('頻回（月'+p.visits+'回）');
+    if(p.selfPay){
+      rows.push([p.name, p.injury, p.visits, '—', '—', '—', '自費（レセプトなし）', risk.join('／')]);
+    } else {
+      rows.push([p.name, p.injury, p.visits,
+        p.signed?'済':'未', p.cause?'済':'未記載',
+        (p.doc==='-')?'不要':(p.doc?'済':'必要・未'),
+        issues.length?('要対応：'+issues.join('・')):'提出可',
+        risk.join('／')]);
+    }
+  });
+  var csv='﻿'+rows.map(function(r){
+    return r.map(function(c){return '"'+String(c).replace(/"/g,'""')+'"';}).join(',');
+  }).join('\r\n');
+  var a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
+  a.download='月末レセプトボード_サンプル.csv';
+  document.body.appendChild(a); a.click();
+  setTimeout(function(){URL.revokeObjectURL(a.href); a.remove();},400);
+}
+document.getElementById('bd-csv').addEventListener('click', toBoardCSV);
 
 /* サマリーカード・内訳リンクの絞り込み（コンテナに1回だけ委譲で結線） */
 ['bd-kpis','bd-breakdown'].forEach(function(id){
