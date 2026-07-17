@@ -6290,6 +6290,59 @@ preset('c-ops', 1);         // 冷罨法
 preset('c-prog', 0);        // 疼痛の軽減
 preset('c-next', 1);        // 2〜3日後
 update();
+
+/* らくらく受付（line.html）からの引き継ぎ（同一ブラウザ内の受け渡し・外部送信なし） */
+(function(){
+  var raw=null;
+  try{ raw=localStorage.getItem('jd_handoff'); localStorage.removeItem('jd_handoff'); }catch(e){}
+  if(!raw) return;
+  var p; try{ p=JSON.parse(raw); }catch(e){ return; }
+  if(!p || p.v!==1) return;
+
+  var PART_MAP={'右足首':'右足関節','左足首':'左足関節','腰':'腰部','首':'頸部'};
+  var SYM_MAP={'腫れている':'腫れ（腫脹）','押すと痛い':'押すと痛い（圧痛）','動かすと痛い':'動かすと痛い','歩くと痛い':'歩くと痛い'};
+  var ACTION_MAP={'階段を踏み外した':'階段を踏み外した','つまずいて転倒した':'段差でつまずき転倒','重い物を持ち上げた':'重い荷物を持ち上げた','急に振り向いた':'急に振り向いた','運動中にひねった':'ジャンプの着地','ぶつかった':'人・物と接触した'};
+  var KIND_LABEL={acute:'ケガをした（急性の外傷）',fract:'骨折・脱臼の疑い',chronic:'慢性的な肩こり・疲労',traffic:'交通事故によるケガ'};
+
+  function clickChip(hostId,label){
+    var host=document.getElementById(hostId); if(!host||!label) return;
+    Array.prototype.some.call(host.children,function(b){
+      if(b.textContent===label){ b.click(); return true; }
+      return false;
+    });
+  }
+  function clearMulti(hostId){
+    var host=document.getElementById(hostId); if(!host) return;
+    Array.prototype.forEach.call(host.querySelectorAll('button.on'),function(b){ b.click(); });
+  }
+
+  clearMulti('c-parts'); clearMulti('c-sym');
+  if(p.dateISO) document.getElementById('p-date').value=p.dateISO;
+  clickChip('c-kind', KIND_LABEL[p.kind]||KIND_LABEL.acute);
+  if(p.place) clickChip('c-place', p.place);
+  if(p.action) clickChip('c-action', ACTION_MAP[p.action]||p.action);
+  (p.parts||[]).forEach(function(x){ clickChip('c-parts', PART_MAP[x]||x); });
+  (p.syms||[]).forEach(function(x){ clickChip('c-sym', SYM_MAP[x]||x); });
+  S.causeEdited=false; update();
+
+  // トークの原因文を優先採用。ただし部位名を本体の呼び方に直し、検査に通る場合のみ
+  if(p.cause){
+    var t=p.cause;
+    ['右足首','左足首','腰','首'].forEach(function(k){
+      if(PART_MAP[k]) t=t.split(k).join(PART_MAP[k]);
+    });
+    document.getElementById('gen-cause').value=t;
+    S.causeEdited=true;
+    if(!causeValid()){ S.causeEdited=false; update(); }   // 通らなければ選択内容から再生成
+    else { checkCause(); renderRecord(); renderBoard(); }
+  }
+
+  var note=document.createElement('div');
+  note.className='alert ok';
+  note.innerHTML='<b>らくらく受付から引き継ぎました</b>トークの回答が受付・原因文に反映されています（このブラウザ内での受け渡しで、外部送信はありません）。';
+  var judgeEl=document.getElementById('judge');
+  judgeEl.parentNode.insertBefore(note, judgeEl);
+})();
 </script>
 </body>
 </html>

@@ -53,8 +53,24 @@
     font-size:12px;font-weight:700;cursor:pointer;border-radius:14px;transition:.12s;}
   .chat-quick button:hover{background:var(--accent);color:#fff;}
   .chat-quick .done-btn{background:var(--accent);color:#fff;}
-  .restart{width:100%;margin-top:10px;border:1px solid #666;background:#222;color:#ddd;padding:9px;font-size:12px;cursor:pointer;}
+  .restart{flex:1;border:1px solid #666;background:#222;color:#ddd;padding:9px;font-size:12px;cursor:pointer;}
   .restart:hover{background:#333;}
+  .phone-btns{display:flex;gap:8px;margin-top:10px;}
+  #back-btn{flex:1;border:1px solid var(--accent);background:#fff;color:var(--accent);padding:9px;font-size:12px;font-weight:700;cursor:pointer;}
+  #back-btn:hover{background:var(--accent);color:#fff;}
+  .mtools{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;}
+  .mtools button{border:1px solid var(--accent);background:#fff;color:var(--accent);padding:8px 14px;font-size:12px;font-weight:700;cursor:pointer;}
+  .mtools button:hover{background:var(--accent);color:#fff;}
+  .gobig{display:block;width:100%;margin-top:10px;background:#ffd479;color:#12161b;border:0;padding:13px;font-size:13.5px;font-weight:700;cursor:pointer;letter-spacing:.02em;}
+  .gobig:hover{background:#ffc84d;}
+
+  @media print{
+    header,.demo-note,.phone-col,.savebar,.next,.foot,.mtools,#handoff-hint{display:none!important;}
+    .page{display:block;padding:0;max-width:none;}
+    .panel{border:1px solid #999;margin-bottom:10px;break-inside:avoid;box-shadow:none;}
+    body{background:#fff;}
+    @page{size:A4 portrait;margin:12mm;}
+  }
 
   /* ===== 院側ビュー ===== */
   .panel{background:#fff;border:1px solid var(--stroke);margin-bottom:14px;}
@@ -119,7 +135,7 @@
 <div class="page">
 
   <!-- ===== 左：患者のスマホ ===== -->
-  <div>
+  <div class="phone-col">
     <div class="phone">
       <div class="screen">
         <div class="chat-head"><span class="back">＜</span> サンプル接骨院（デモ）</div>
@@ -127,7 +143,10 @@
         <div class="chat-quick" id="quick"></div>
       </div>
     </div>
-    <button class="restart" id="restart" type="button">最初からやり直す</button>
+    <div class="phone-btns">
+      <button id="back-btn" type="button">← 1つ前の質問に戻る</button>
+      <button class="restart" id="restart" type="button">最初からやり直す</button>
+    </div>
   </div>
 
   <!-- ===== 右：院側に届くもの ===== -->
@@ -162,6 +181,9 @@
       <div class="pbody">
         <div class="mprog" id="m-prog"></div>
         <div id="v-monshin"><span class="empty">左のトークが進むと、問診票がここで自動的に埋まっていきます。</span></div>
+        <div class="mtools">
+          <button id="m-print" type="button">この問診票を印刷・PDF保存</button>
+        </div>
         <div class="hint" style="font-size:10.5px;color:#8b939b;margin-top:8px;">
           自動入力された内容は来院時に受付・施術者が本人確認のうえ確定します（下書きです）。残り項目は氏名・生年月日など本人確認が必要なものだけ＝タブレットで約1分。
         </div>
@@ -169,9 +191,9 @@
     </div>
 
     <div class="next">
-      ここから先（施術録12項目の下書き・2026年7月改定対応の料金計算・月末レセプトボード）は
-      <b>事務アシスタント本体</b>に引き継がれます → <a href="index.html">本体デモを開く</a><br>
-      <span style="font-size:11px;color:#9aa5b1;">このデモの文章はルールベースの組み立てです。実運用ではAIを接続し、自由入力の会話からも下書きを作れます（API契約が必要）。</span>
+      ここから先（施術録12項目の下書き・2026年7月改定対応の料金計算・月末レセプトボード）は<b>事務アシスタント本体</b>で続きます。
+      <button class="gobig" id="go-handoff" type="button">この内容を引き継いで本体デモを開く →</button>
+      <span style="font-size:11px;color:#9aa5b1;">トークの回答（部位・症状・負傷原因文など）が本体のSTEP1〜2に自動で入った状態で開きます。引き継がずに開く場合は <a href="index.html">こちら</a>。このデモの文章はルールベースの組み立てです。実運用ではAIを接続し、自由入力の会話からも下書きを作れます（API契約が必要）。</span>
     </div>
   </div>
 
@@ -462,6 +484,39 @@ function renderMonshin(){
     return '<div class="mrow todo"><span class="ml">'+esc(r.l)+'</span><span class="mv">'+esc(r.todo||'来院時にご記入')+'</span></div>';
   }).join('');
 }
+
+/* ---- 1つ前の質問に戻る（答えた項目を後ろから1つ消して聞き直す） ---- */
+document.getElementById('back-btn').addEventListener('click', function(){
+  clearChoices();
+  if(S.hist.length){ S.hist=[]; renderSide(); askHist(); return; }
+  if(S.syms.length){ S.syms=[]; renderSide(); askSyms(); return; }
+  if(S.parts.length){ S.parts=[]; renderSide(); askParts(); return; }
+  if(S.action){ S.action=null; renderSide(); askAction(); return; }
+  if(S.place){ S.place=null; renderSide(); askPlace(); return; }
+  if(S.when){ S.when=null; renderSide(); askWhen(); return; }
+  start();   // 何も答えていなければ最初から
+});
+
+/* ---- 問診票の印刷・PDF保存 ---- */
+document.getElementById('m-print').addEventListener('click', function(){ window.print(); });
+
+/* ---- 本体デモへの引き継ぎ（同じブラウザ内のみ・外部送信なし） ---- */
+document.getElementById('go-handoff').addEventListener('click', function(){
+  var offset={'今日':0,'きのう':1,'おととい':2}[S.when];
+  var dateISO=null;
+  if(offset!==undefined){
+    var d=new Date(Date.now()-offset*86400000);
+    dateISO=d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2);
+  }
+  var payload={
+    v:1, kind:S.kind, dateISO:dateISO,
+    place:S.place, action:(S.action?S.action.t:null),
+    parts:S.parts.slice(), syms:S.syms.slice(), hist:S.hist.slice(),
+    cause:(S.kind && S.kind!=='chronic') ? buildCause() : null
+  };
+  try{ localStorage.setItem('jd_handoff', JSON.stringify(payload)); }catch(e){}
+  location.href='index.html';
+});
 
 document.getElementById('restart').addEventListener('click', start);
 start();
