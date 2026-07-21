@@ -17,8 +17,18 @@
   box-shadow:0 2px 12px rgba(0,0,0,.22);font-family:'Noto Sans JP',sans-serif;font-size:12px;color:#444;}
 #skinpick .pin{font-weight:700;letter-spacing:.06em;font-size:11px;color:#666;}
 #skinpick select{border:0;background:transparent;font-family:inherit;font-size:13px;font-weight:700;color:#111;cursor:pointer;outline:none;max-width:190px;}
+.print-head{display:none;}
 @media print{#skinpick{display:none!important;}}
-
+@media print{
+    body.print-board *{visibility:hidden;}
+    body.print-board #st5, body.print-board #st5 *{visibility:visible;}
+    body.print-board #st5{position:absolute;left:0;top:0;width:100%;border:0!important;box-shadow:none!important;margin:0!important;}
+    body.print-board #st5 *{color:#000!important;background:#fff!important;border-color:#888!important;box-shadow:none!important;}
+    body.print-board #st5 .nextstep, body.print-board #st5 #bd-search, body.print-board #st5 .bd-export,
+    body.print-board #st5 details, body.print-board #sheet-host{display:none!important;}
+    body.print-board .print-head{display:block!important;font-size:12px;margin-bottom:6px;}
+    @page{size:A4 landscape;margin:10mm;}
+  }
 </style>
 <style class="skin" data-skin="gcal">
 /* ============================================================
@@ -5345,6 +5355,19 @@ summary:focus-visible{
   .bd-link:hover{color:var(--ink);}
   .regen{border:1px solid var(--accent);background:#fff;color:var(--accent);padding:5px 12px;font-size:11.5px;font-weight:700;cursor:pointer;margin-top:6px;}
   .regen:hover{background:var(--accent);color:#fff;}
+
+  /* 月末ボードのPDF・印刷（ボードだけをA4横で出す。スキンに関わらず白黒で読める形に） */
+  .print-head{display:none;}
+  @media print{
+    body.print-board *{visibility:hidden;}
+    body.print-board #st5, body.print-board #st5 *{visibility:visible;}
+    body.print-board #st5{position:absolute;left:0;top:0;width:100%;border:0!important;box-shadow:none!important;margin:0!important;}
+    body.print-board #st5 *{color:#000!important;background:#fff!important;border-color:#888!important;box-shadow:none!important;}
+    body.print-board #st5 .nextstep, body.print-board #st5 #bd-search, body.print-board #st5 .bd-export,
+    body.print-board #st5 details, body.print-board #sheet-host{display:none!important;}
+    body.print-board .print-head{display:block!important;font-size:12px;margin-bottom:6px;}
+    @page{size:A4 landscape;margin:10mm;}
+  }
   tr.rowsel{cursor:pointer;}
   tr.rowsel:hover td{background:#f7fafd;}
 
@@ -5612,8 +5635,13 @@ function applySkin(name){
         <input id="bd-search" type="text" placeholder="患者名で検索（ひらがなでも探せます）"
                style="flex:1;min-width:220px;border:1px solid var(--line);padding:8px 12px;font-size:13px;">
         <span id="bd-hit" style="font-size:11.5px;color:var(--sub);"></span>
-        <button id="bd-csv" class="regen" type="button" style="margin-top:0;">Excelへ書き出し（CSV）</button>
+        <span class="bd-export" style="display:flex;gap:6px;flex-wrap:wrap;">
+          <button id="bd-xlsx" class="regen" type="button" style="margin-top:0;">Excel（.xlsx）</button>
+          <button id="bd-pdf" class="regen" type="button" style="margin-top:0;">PDF・印刷</button>
+          <button id="bd-csv" class="regen" type="button" style="margin-top:0;">CSV</button>
+        </span>
       </div>
+      <div class="print-head" id="bd-printhead"></div>
       <div style="overflow-x:auto;">
         <table class="bd" id="board">
           <thead><tr>
@@ -5827,6 +5855,7 @@ function checkCause(){
 document.getElementById('gen-cause').addEventListener('input', function(){
   S.causeEdited=true;
   checkCause(); renderRecord(); renderBoard();
+  if(window.__booted) saveDraft();
 });
 
 /* =======================================================================
@@ -5903,9 +5932,10 @@ function renderRecord(){
     S.docChecked=doc.checked;                               // stateに保持（再描画で消えない）
     doc.closest('td').classList.toggle('miss', !doc.checked);
     renderBoard();                                          // 月末ボードのlive行も即追従
+    if(window.__booted) saveDraft();
   });
   var tk=document.getElementById('rec-tenki');
-  if(tk) tk.addEventListener('change', function(){ S.tenki=tk.value; });
+  if(tk) tk.addEventListener('change', function(){ S.tenki=tk.value; if(window.__booted) saveDraft(); });
 }
 document.getElementById('rec-confirm').addEventListener('click', function(){
   var missing=[];
@@ -6001,7 +6031,7 @@ function renderFee(){
   }
 }
 ['f-visit','f-saiken','f-anpo','f-ratio'].forEach(function(id){
-  document.getElementById(id).addEventListener('change', function(){ renderFee(); });
+  document.getElementById(id).addEventListener('change', function(){ renderFee(); if(window.__booted) saveDraft(); });
 });
 
 /* =======================================================================
@@ -6177,8 +6207,8 @@ function renderBoard(){
     '<span class="lbl" style="margin-left:auto;">行をクリックすると申請書の見本を表示します</span>';
 }
 
-/* 月末ボードのExcel書き出し（CSV・BOM付きUTF-8＝Excelでそのまま開ける） */
-function toBoardCSV(){
+/* 月末ボードの書き出し（共通データ → CSV／Excel(.xlsx)／PDF・印刷の3形式） */
+function buildBoardAOA(){
   var d=deadlineInfo();
   var all=[currentPatientRow()].concat(BOARD);
   var rows=[
@@ -6202,6 +6232,10 @@ function toBoardCSV(){
         risk.join('／')]);
     }
   });
+  return rows;
+}
+function toBoardCSV(){
+  var rows=buildBoardAOA();
   var csv='﻿'+rows.map(function(r){
     return r.map(function(c){return '"'+String(c).replace(/"/g,'""')+'"';}).join(',');
   }).join('\r\n');
@@ -6212,6 +6246,51 @@ function toBoardCSV(){
   setTimeout(function(){URL.revokeObjectURL(a.href); a.remove();},400);
 }
 document.getElementById('bd-csv').addEventListener('click', toBoardCSV);
+
+/* Excel(.xlsx)：必要になった時だけSheetJS（バージョン固定CDN）を読み込む。失敗時はCSVに切替 */
+var XLSX_URL='https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';
+function loadSheetJS(){
+  return new Promise(function(resolve, reject){
+    if(window.XLSX) return resolve();
+    var s=document.createElement('script');
+    s.src=XLSX_URL;
+    s.onload=function(){ resolve(); };
+    s.onerror=function(){ reject(new Error('cdn')); };
+    document.head.appendChild(s);
+  });
+}
+function toBoardXLSX(){
+  var hit=document.getElementById('bd-hit');
+  hit.textContent='Excelファイルを作成中…';
+  loadSheetJS().then(function(){
+    var rows=buildBoardAOA();
+    var ws=XLSX.utils.aoa_to_sheet(rows);
+    ws['!cols']=[{wch:22},{wch:28},{wch:12},{wch:12},{wch:14},{wch:12},{wch:26},{wch:34}];
+    var wb=XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, '月末レセプトボード');
+    XLSX.writeFile(wb, '月末レセプトボード_サンプル.xlsx');
+    hit.textContent='Excelファイルを書き出しました';
+    setTimeout(renderBoard, 2000);
+  }).catch(function(){
+    hit.textContent='Excel部品を読み込めなかったため、CSVで書き出しました（Excelで開けます）';
+    toBoardCSV();
+    setTimeout(renderBoard, 3000);
+  });
+}
+document.getElementById('bd-xlsx').addEventListener('click', toBoardXLSX);
+
+/* PDF・印刷：ボードだけをA4横で（印刷ダイアログで「PDFに保存」を選べばPDFになる） */
+document.getElementById('bd-pdf').addEventListener('click', function(){
+  var d=deadlineInfo();
+  var all=[currentPatientRow()].concat(BOARD);
+  var today=new Date();
+  document.getElementById('bd-printhead').textContent=
+    'サンプル接骨院（デモ）｜月末レセプトボード　出力日：'+(today.getMonth()+1)+'月'+today.getDate()+'日'
+    +'　提出期限：'+d.due+'（あと'+d.days+'日）　対象：'+all.length+'名　※架空のサンプルデータです';
+  document.body.classList.add('print-board');
+  window.print();
+  document.body.classList.remove('print-board');
+});
 
 /* サマリーカード・内訳リンクの絞り込み（コンテナに1回だけ委譲で結線） */
 ['bd-kpis','bd-breakdown'].forEach(function(id){
@@ -6270,6 +6349,7 @@ function update(){
   renderRecord();
   renderFee();
   renderBoard();
+  if(window.__booted) saveDraft();   // 起動処理が終わった後のユーザー操作だけ自動保存
 }
 /* 手編集した原因文は勝手に消さない。作り直しは明示ボタンでのみ行う */
 ['p-name','p-date','p-time','p-hoken'].forEach(function(id){
@@ -6328,6 +6408,28 @@ preset('c-prog', 0);        // 疼痛の軽減
 preset('c-next', 1);        // 2〜3日後
 update();
 
+/* ---- チップ操作の共有ヘルパー（引き継ぎ・下書き復元で使用） ---- */
+var KIND_LABEL={acute:'ケガをした（急性の外傷）',fract:'骨折・脱臼の疑い',chronic:'慢性的な肩こり・疲労',traffic:'交通事故によるケガ'};
+function clickChip(hostId,label){
+  var host=document.getElementById(hostId); if(!host||!label) return;
+  Array.prototype.some.call(host.children,function(b){
+    if(b.textContent===label){ b.click(); return true; }
+    return false;
+  });
+}
+function clearMulti(hostId){
+  var host=document.getElementById(hostId); if(!host) return;
+  Array.prototype.forEach.call(host.querySelectorAll('button.on'),function(b){ b.click(); });
+}
+function insertNote(html){
+  var note=document.createElement('div');
+  note.className='alert ok';
+  note.innerHTML=html;
+  var judgeEl=document.getElementById('judge');
+  judgeEl.parentNode.insertBefore(note, judgeEl);
+  return note;
+}
+
 /* らくらく受付（line.html）からの引き継ぎ（同一ブラウザ内の受け渡し・外部送信なし） */
 (function(){
   var raw=null;
@@ -6335,23 +6437,11 @@ update();
   if(!raw) return;
   var p; try{ p=JSON.parse(raw); }catch(e){ return; }
   if(!p || p.v!==1) return;
+  window.__handoffApplied=true;
 
   var PART_MAP={'右足首':'右足関節','左足首':'左足関節','腰':'腰部','首':'頸部'};
   var SYM_MAP={'腫れている':'腫れ（腫脹）','押すと痛い':'押すと痛い（圧痛）','動かすと痛い':'動かすと痛い','歩くと痛い':'歩くと痛い'};
   var ACTION_MAP={'階段を踏み外した':'階段を踏み外した','つまずいて転倒した':'段差でつまずき転倒','重い物を持ち上げた':'重い荷物を持ち上げた','急に振り向いた':'急に振り向いた','運動中にひねった':'ジャンプの着地','ぶつかった':'人・物と接触した'};
-  var KIND_LABEL={acute:'ケガをした（急性の外傷）',fract:'骨折・脱臼の疑い',chronic:'慢性的な肩こり・疲労',traffic:'交通事故によるケガ'};
-
-  function clickChip(hostId,label){
-    var host=document.getElementById(hostId); if(!host||!label) return;
-    Array.prototype.some.call(host.children,function(b){
-      if(b.textContent===label){ b.click(); return true; }
-      return false;
-    });
-  }
-  function clearMulti(hostId){
-    var host=document.getElementById(hostId); if(!host) return;
-    Array.prototype.forEach.call(host.querySelectorAll('button.on'),function(b){ b.click(); });
-  }
 
   clearMulti('c-parts'); clearMulti('c-sym');
   if(p.dateISO) document.getElementById('p-date').value=p.dateISO;
@@ -6374,12 +6464,71 @@ update();
     else { checkCause(); renderRecord(); renderBoard(); }
   }
 
-  var note=document.createElement('div');
-  note.className='alert ok';
-  note.innerHTML='<b>らくらく受付から引き継ぎました</b>トークの回答が受付・原因文に反映されています（このブラウザ内での受け渡しで、外部送信はありません）。';
-  var judgeEl=document.getElementById('judge');
-  judgeEl.parentNode.insertBefore(note, judgeEl);
+  insertNote('<b>らくらく受付から引き継ぎました</b>トークの回答が受付・原因文に反映されています（このブラウザ内での受け渡しで、外部送信はありません）。');
 })();
+
+/* ---- 入力の自動保存・復元（この端末のブラウザ内のみ。リロードしても消えない） ---- */
+var DRAFT_KEY='jd_draft';
+function saveDraft(){
+  try{
+    localStorage.setItem(DRAFT_KEY, JSON.stringify({
+      v:1,
+      kind:S.kind, place:S.place, action:(S.action?S.action.t:null),
+      parts:S.parts, syms:S.syms, ops:S.ops, prog:S.prog, next:S.next,
+      tenki:S.tenki, doc:S.docChecked,
+      causeEdited:S.causeEdited, cause:document.getElementById('gen-cause').value,
+      name:document.getElementById('p-name').value,
+      date:document.getElementById('p-date').value,
+      time:document.getElementById('p-time').value,
+      hoken:document.getElementById('p-hoken').value,
+      visit:document.getElementById('f-visit').value,
+      saiken:document.getElementById('f-saiken').value,
+      anpo:document.getElementById('f-anpo').value,
+      ratio:document.getElementById('f-ratio').value
+    }));
+  }catch(e){}
+}
+(function restoreDraft(){
+  if(window.__handoffApplied) return;   // 引き継ぎがある時はそちらを優先
+  var raw=null;
+  try{ raw=localStorage.getItem(DRAFT_KEY); }catch(e){}
+  if(!raw) return;
+  var p; try{ p=JSON.parse(raw); }catch(e){ return; }
+  if(!p || p.v!==1) return;
+
+  clearMulti('c-parts'); clearMulti('c-sym'); clearMulti('c-ops'); clearMulti('c-prog');
+  if(p.name!==undefined) document.getElementById('p-name').value=p.name;
+  if(p.date) document.getElementById('p-date').value=p.date;
+  if(p.time) document.getElementById('p-time').value=p.time;
+  if(p.hoken) document.getElementById('p-hoken').value=p.hoken;
+  clickChip('c-kind', KIND_LABEL[p.kind]||KIND_LABEL.acute);
+  if(p.place) clickChip('c-place', p.place);
+  if(p.action) clickChip('c-action', p.action);
+  (p.parts||[]).forEach(function(x){ clickChip('c-parts', x); });
+  (p.syms||[]).forEach(function(x){ clickChip('c-sym', x); });
+  (p.ops||[]).forEach(function(x){ clickChip('c-ops', x); });
+  (p.prog||[]).forEach(function(x){ clickChip('c-prog', x); });
+  if(p.next) clickChip('c-next', p.next);
+  if(p.tenki) S.tenki=p.tenki;
+  S.docChecked=!!p.doc;
+  if(p.visit) document.getElementById('f-visit').value=p.visit;
+  if(p.saiken) document.getElementById('f-saiken').value=p.saiken;
+  if(p.anpo) document.getElementById('f-anpo').value=p.anpo;
+  if(p.ratio) document.getElementById('f-ratio').value=p.ratio;
+  S.causeEdited=false; update();
+  if(p.causeEdited && p.cause){
+    document.getElementById('gen-cause').value=p.cause;
+    S.causeEdited=true;
+    checkCause(); renderRecord(); renderBoard();
+  }
+  var note=insertNote('<b>前回の入力を復元しました</b>この端末のブラウザ内に自動保存された下書きです（外部送信はありません）。 '
+    +'<button id="draft-reset" type="button" style="margin-left:8px;border:1px solid var(--warn);background:#fff;color:var(--warn);padding:3px 10px;font-size:11px;font-weight:700;cursor:pointer;">サンプルに戻す</button>');
+  note.querySelector('#draft-reset').addEventListener('click', function(){
+    try{ localStorage.removeItem(DRAFT_KEY); }catch(e){}
+    location.reload();
+  });
+})();
+window.__booted=true;   // これ以降のユーザー操作だけを自動保存する
 </script>
 </body>
 </html>
