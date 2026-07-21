@@ -11,7 +11,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Oswald:wght@500;700&family=Roboto:wght@400;500;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style id="skin-base">
 
-/* ===== 常時適用（スキン非依存）: UI切替スイッチャー＋印刷 ===== */
+/* ===== 常時適用（スキン非依存）: UI切替スイッチャー＋印刷＋STEP6/7基礎 ===== */
 #skinpick{position:fixed;top:10px;left:10px;z-index:99999;display:flex;align-items:center;gap:7px;
   background:rgba(255,255,255,.96);border:1px solid #c9ced6;border-radius:999px;padding:7px 12px 7px 14px;
   box-shadow:0 2px 12px rgba(0,0,0,.22);font-family:'Noto Sans JP',sans-serif;font-size:12px;color:#444;}
@@ -19,6 +19,33 @@
 #skinpick select{border:0;background:transparent;font-family:inherit;font-size:13px;font-weight:700;color:#111;cursor:pointer;outline:none;max-width:190px;}
 .print-head{display:none;}
 @media print{#skinpick{display:none!important;}}
+  /* ---- STEP6 本部ビュー ---- */
+  .gp-bar{height:8px;background:#e8ebef;border-radius:4px;overflow:hidden;min-width:110px;}
+  .gp-bar i{display:block;height:100%;background:var(--ok);}
+  .gp-bar.low i{background:var(--warn);}
+  .gp-pct{font-size:11px;color:var(--sub);margin-left:6px;white-space:nowrap;}
+  #gp-table td{vertical-align:middle;}
+  #gp-table tr.gp-total td{font-weight:700;border-top:2px solid var(--ink);}
+  #gp-table tr.gp-live td{background:#f2f7fc;}
+
+  /* ---- STEP7 返戻・照会・交通事故 ---- */
+  .subtabs{margin-top:4px;}
+  .rp-draft{border:1.5px solid var(--line);background:#fff;margin-top:12px;padding:12px 14px;}
+  .rp-draft .rp-title{font-size:12px;font-weight:700;color:var(--accent);margin-bottom:6px;}
+  .rp-draft ul{margin:0 0 10px 18px;padding:0;font-size:12.5px;line-height:1.8;}
+  .rp-draft textarea{width:100%;min-height:170px;border:1px solid var(--line);padding:10px 12px;
+    font-family:'Noto Sans JP',sans-serif;font-size:13px;line-height:1.8;resize:vertical;box-sizing:border-box;}
+  .rp-copy{margin-top:8px;background:var(--deep);color:#fff;border:0;padding:9px 18px;font-size:12.5px;
+    font-weight:700;cursor:pointer;font-family:inherit;}
+  .rp-copy:hover{background:var(--accent);}
+  .rp-copy-done{font-size:12px;color:var(--ok);font-weight:700;margin-left:10px;}
+  .jk-list{display:flex;flex-direction:column;gap:6px;}
+  .jk-list label{display:flex;gap:10px;align-items:flex-start;border:1.5px solid var(--line);background:#fff;
+    padding:10px 12px;font-size:13px;line-height:1.6;cursor:pointer;}
+  .jk-list label:hover{border-color:var(--accent);}
+  .jk-list input{margin-top:3px;accent-color:var(--accent);}
+  .jk-list label.done{border-color:var(--ok);background:#f1f8f4;}
+  .jk-prog{font-size:12px;font-weight:700;color:var(--sub);margin:6px 0 10px;}
 @media print{
     body.print-board *{visibility:hidden;}
     body.print-board #st5, body.print-board #st5 *{visibility:visible;}
@@ -5353,6 +5380,34 @@ summary:focus-visible{
   .bd-kpis .card.active{border-color:var(--accent);background:#eef3f8;box-shadow:inset 0 0 0 1px var(--accent);}
   .bd-link{color:var(--warn);font-weight:700;cursor:pointer;text-decoration:underline;text-underline-offset:2px;}
   .bd-link:hover{color:var(--ink);}
+
+  /* ---- STEP6 本部ビュー ---- */
+  .gp-bar{height:8px;background:#e8ebef;border-radius:4px;overflow:hidden;min-width:110px;}
+  .gp-bar i{display:block;height:100%;background:var(--ok);}
+  .gp-bar.low i{background:var(--warn);}
+  .gp-pct{font-size:11px;color:var(--sub);margin-left:6px;white-space:nowrap;}
+  #gp-table td{vertical-align:middle;}
+  #gp-table tr.gp-total td{font-weight:700;border-top:2px solid var(--ink);}
+  #gp-table tr.gp-live td{background:#f2f7fc;}
+
+  /* ---- STEP7 返戻・照会・交通事故 ---- */
+  .subtabs{margin-top:4px;}
+  .rp-draft{border:1.5px solid var(--line);background:#fff;margin-top:12px;padding:12px 14px;}
+  .rp-draft .rp-title{font-size:12px;font-weight:700;color:var(--accent);margin-bottom:6px;}
+  .rp-draft ul{margin:0 0 10px 18px;padding:0;font-size:12.5px;line-height:1.8;}
+  .rp-draft textarea{width:100%;min-height:170px;border:1px solid var(--line);padding:10px 12px;
+    font-family:'Noto Sans JP',sans-serif;font-size:13px;line-height:1.8;resize:vertical;box-sizing:border-box;}
+  .rp-copy{margin-top:8px;background:var(--deep);color:#fff;border:0;padding:9px 18px;font-size:12.5px;
+    font-weight:700;cursor:pointer;font-family:inherit;}
+  .rp-copy:hover{background:var(--accent);}
+  .rp-copy-done{font-size:12px;color:var(--ok);font-weight:700;margin-left:10px;}
+  .jk-list{display:flex;flex-direction:column;gap:6px;}
+  .jk-list label{display:flex;gap:10px;align-items:flex-start;border:1.5px solid var(--line);background:#fff;
+    padding:10px 12px;font-size:13px;line-height:1.6;cursor:pointer;}
+  .jk-list label:hover{border-color:var(--accent);}
+  .jk-list input{margin-top:3px;accent-color:var(--accent);}
+  .jk-list label.done{border-color:var(--ok);background:#f1f8f4;}
+  .jk-prog{font-size:12px;font-weight:700;color:var(--sub);margin:6px 0 10px;}
   .regen{border:1px solid var(--accent);background:#fff;color:var(--accent);padding:5px 12px;font-size:11.5px;font-weight:700;cursor:pointer;margin-top:6px;}
   .regen:hover{background:var(--accent);color:#fff;}
 
@@ -5441,10 +5496,12 @@ function applySkin(name){
 
 <nav class="stepnav" id="stepnav">
   <button type="button" data-go="st1"><span class="n">STEP 1</span>受付・問診</button>
-  <button type="button" data-go="st2"><span class="n">STEP 2</span>原因文の下書き</button>
+  <button type="button" data-go="st2"><span class="n">STEP 2</span>原因文</button>
   <button type="button" data-go="st3"><span class="n">STEP 3</span>施術録</button>
-  <button type="button" data-go="st4"><span class="n">STEP 4</span>料金計算</button>
+  <button type="button" data-go="st4"><span class="n">STEP 4</span>料金</button>
   <button type="button" data-go="st5"><span class="n">STEP 5</span>月末ボード</button>
+  <button type="button" data-go="st6"><span class="n">STEP 6</span>本部ビュー</button>
+  <button type="button" data-go="st7"><span class="n">STEP 7</span>返戻・事故対応</button>
 </nav>
 
 <div class="page">
@@ -5659,6 +5716,73 @@ function applySkin(name){
         </div>
       </details>
       <div id="sheet-host"></div>
+      <button class="nextstep" type="button" data-go="st6">次へ：本部ビュー（グループ集計）へ ↓</button>
+    </div>
+  </div>
+
+  <!-- ================= STEP 6 本部ビュー（グループ） ================= -->
+  <div class="panel" id="st6">
+    <h2>STEP 6｜本部ビュー — 複数院グループの月末をひと目で<span class="en">HQ VIEW</span></h2>
+    <div class="pbody">
+      <p class="lead">複数院を運営するグループの本部向け画面です（<b>院名・数値はすべて架空のサンプル</b>）。
+      院ごとのレセプト進捗・要対応・償還払いリスクを横並びで確認でき、どの院から手を付けるべきかが一目で分かります。
+      1行目「この画面の院」だけは<b>STEP 5のボードと連動</b>した実際の集計です。</p>
+      <div class="bd-kpis" id="gp-kpis"></div>
+      <div style="overflow-x:auto;">
+        <table class="bd" id="gp-table">
+          <thead><tr>
+            <th>院（架空）</th><th>レセプト</th><th>提出可</th><th>要対応</th><th>リスク患者</th><th style="min-width:140px;">提出準備の進捗</th>
+          </tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <details class="whybox" style="margin-top:10px;">
+        <summary>この画面の考え方（実運用時）</summary>
+        <div class="inner">
+          実運用では各院の入力データを自動で集計し、本部は「要対応が多い院」から順にフォローに入れます。
+          院ごとのExcel・PDF書き出し（STEP 5と同じ3形式）にも対応する想定です。
+          デモのため、この画面の院以外は固定のサンプル値です。
+        </div>
+      </details>
+      <button class="nextstep" type="button" data-go="st7">次へ：返戻・照会・交通事故の対応へ ↓</button>
+    </div>
+  </div>
+
+  <!-- ================= STEP 7 返戻・照会・交通事故 ================= -->
+  <div class="panel" id="st7">
+    <h2>STEP 7｜返戻・照会・交通事故 — 返ってきた時の文章も、その場で下書き<span class="en">REPLY DESK</span></h2>
+    <div class="pbody">
+      <p class="lead">レセプトが返戻された時、保険者から患者照会が届いた時、交通事故（自賠責）の経過報告——
+      現場でいちばん筆が重い文章の下書きを作ります。<b>STEP 1〜3で入力した患者名・部位・原因文・経過を自動で差し込みます。</b></p>
+      <div class="chips subtabs" id="rp-tabs">
+        <button type="button" data-rp="henrei" class="on">返戻への再請求</button>
+        <button type="button" data-rp="shokai">患者照会への回答</button>
+        <button type="button" data-rp="jiko">交通事故・自賠責</button>
+      </div>
+
+      <div class="rp-sec" id="rp-henrei">
+        <div class="q" style="margin-top:14px;">返戻理由を選ぶと、直すポイントと再請求の補足文を下書きします</div>
+        <div class="chips" id="c-henrei"></div>
+        <div id="henrei-out"></div>
+      </div>
+
+      <div class="rp-sec" id="rp-shokai" hidden>
+        <div class="q" style="margin-top:14px;">照会で聞かれている内容を選んでください</div>
+        <div class="chips" id="c-shokai"></div>
+        <div id="shokai-out"></div>
+        <div class="alert info">患者さん本人にも同じ照会が届いていることがあります。<b>本人の記憶と院の回答が食い違うと再照会の原因</b>になるため、来院時に「保険者から手紙が届いたら、受付にお見せください」と一声かける運用をおすすめします。照会への未回答・記載の不一致は、支給決定の遅れや償還払い切替検討の材料になり得ます。</div>
+      </div>
+
+      <div class="rp-sec" id="rp-jiko" hidden>
+        <div class="q" style="margin-top:14px;">交通事故の受付チェックリスト（タップで確認）</div>
+        <div id="jiko-check"></div>
+        <div class="q" style="margin-top:16px;">保険会社への経過報告書の下書き</div>
+        <div id="jiko-out"></div>
+      </div>
+
+      <div class="alert" style="margin-top:14px;"><b>この機能の前提（必ずお読みください）</b>
+      下書きはすべて<b>施術録の記載と一致</b>している必要があります。事実と異なる内容での請求・回答は不正請求にあたります。
+      文面の確認・修正・提出の判断は施術管理者が行ってください（このデモはルールベースの下書きです。実運用ではAI接続でさらに自然な文章になります）。</div>
       <button class="nextstep" type="button" data-go="st1">▲ 最初（受付・問診）に戻る</button>
     </div>
   </div>
@@ -6205,6 +6329,10 @@ function renderBoard(){
     '<span class="lbl">レセプト提出期限（'+d.due+'）まで</span><span class="big">あと '+d.days+'<small> 日</small></span>'+
     '<span class="lbl">今月のレセプト</span><span class="big">'+receiptCount+'<small> 件</small></span>'+
     '<span class="lbl" style="margin-left:auto;">行をクリックすると申請書の見本を表示します</span>';
+
+  // STEP6 本部ビューは STEP5 の集計と連動（この画面の院＝実データ）
+  window.__boardStats={receipt:receiptCount, ok:okCount, need:need, risk:riskN};
+  if(window.renderGroup) renderGroup();
 }
 
 /* 月末ボードの書き出し（共通データ → CSV／Excel(.xlsx)／PDF・印刷の3形式） */
@@ -6303,6 +6431,242 @@ document.getElementById('bd-pdf').addEventListener('click', function(){
   });
 });
 
+/* =======================================================================
+   STEP6 本部ビュー（10院グループ・サンプル）
+   1行目だけSTEP5の実集計と連動。他9院は架空の固定値
+   ======================================================================= */
+var GROUP=[
+  {name:'駅前院',      r:186, ok:174, need:12, risk:2},
+  {name:'中央通り院',  r:163, ok:160, need:3,  risk:1},
+  {name:'南バイパス院',r:141, ok:129, need:12, risk:3},
+  {name:'北の丘院',    r:129, ok:127, need:2,  risk:0},
+  {name:'東かわら院',  r:118, ok:104, need:14, risk:2},
+  {name:'西公園前院',  r:112, ok:110, need:2,  risk:1},
+  {name:'港町院',      r:96,  ok:88,  need:8,  risk:1},
+  {name:'山手院',      r:88,  ok:87,  need:1,  risk:0},
+  {name:'ゆのまち院',  r:74,  ok:70,  need:4,  risk:1}
+];
+function renderGroup(){
+  var host=document.querySelector('#gp-table tbody');
+  if(!host) return;
+  var st=window.__boardStats||{receipt:0, ok:0, need:0, risk:0};
+  var rows=[{name:'この画面の院（STEP 5と連動）', r:st.receipt, ok:st.ok, need:st.need, risk:st.risk, live:true}]
+    .concat(GROUP.slice().sort(function(a,b){ return b.need-a.need; }));   // 要対応が多い院を上に
+  var t={r:0, ok:0, need:0, risk:0};
+  host.innerHTML='';
+  rows.forEach(function(c){
+    t.r+=c.r; t.ok+=c.ok; t.need+=c.need; t.risk+=c.risk;
+    var pct=c.r?Math.round(c.ok/c.r*100):0;
+    var tr=document.createElement('tr');
+    if(c.live) tr.className='gp-live';
+    tr.innerHTML=
+      '<td>'+esc(c.name)+'</td>'+
+      '<td>'+c.r+'件</td>'+
+      '<td>'+c.ok+'件</td>'+
+      '<td>'+(c.need?'<span class="b-ng">'+c.need+'件</span>':'0件')+'</td>'+
+      '<td>'+(c.risk?'<span class="b-ng">'+c.risk+'人</span>':'—')+'</td>'+
+      '<td><span style="display:flex;align-items:center;"><span class="gp-bar'+(pct<90?' low':'')+'" style="flex:1;"><i style="width:'+pct+'%;"></i></span><span class="gp-pct">'+pct+'%</span></span></td>';
+    host.appendChild(tr);
+  });
+  var pctAll=t.r?Math.round(t.ok/t.r*100):0;
+  var trT=document.createElement('tr');
+  trT.className='gp-total';
+  trT.innerHTML='<td>グループ合計（10院）</td><td>'+t.r+'件</td><td>'+t.ok+'件</td><td>'+t.need+'件</td><td>'+t.risk+'人</td>'+
+    '<td><span class="gp-pct" style="margin-left:0;">'+pctAll+'%</span></td>';
+  host.appendChild(trT);
+
+  var kp=document.getElementById('gp-kpis');
+  function gcard(cls, label, val, unit){
+    return '<div class="card '+cls+'" style="cursor:default;"><span class="k">'+label+'</span><span class="v">'+val+'<small> '+unit+'</small></span></div>';
+  }
+  kp.innerHTML=
+    gcard('', 'グループ全体のレセプト', t.r, '件')+
+    gcard('ok', '提出できる', t.ok, '件')+
+    gcard('warn', '要対応（全院合計）', t.need, '件')+
+    gcard('amber', '償還払いリスク', t.risk, '人');
+}
+
+/* =======================================================================
+   STEP7 返戻・照会・交通事故（回答文の下書き）
+   すべてルールベース＝STEP1〜3の入力値を差し込むだけ。事実の確定は施術者
+   ======================================================================= */
+function rpName(){ return (document.getElementById('p-name').value||'（患者名）'); }
+function rpDate(){
+  var v=document.getElementById('p-date').value;
+  if(!v) return '（負傷日）';
+  var p=v.split('-'); return p[0]+'年'+(+p[1])+'月'+(+p[2])+'日';
+}
+function rpCause(){
+  var v=document.getElementById('gen-cause').value;
+  return v||'（STEP 2で負傷原因文を作成してください）';
+}
+function rpInjury(){ return S.parts.length?injuryName():'（負傷名：STEP 1で部位を選択）'; }
+function rpSyms(){ return S.syms.length?S.syms.join('・'):'（症状：STEP 1で選択）'; }
+function rpOps(){ return S.ops.length?S.ops.join('・'):'（施術内容：STEP 3で選択）'; }
+function rpProg(){ return S.prog.length?S.prog.join('・'):'（経過：STEP 3で選択）'; }
+
+function draftBox(hostId, title, points, text){
+  var host=document.getElementById(hostId);
+  host.innerHTML=
+    '<div class="rp-draft">'+
+      '<div class="rp-title">'+esc(title)+'</div>'+
+      (points.length?('<ul>'+points.map(function(p){return '<li>'+esc(p)+'</li>';}).join('')+'</ul>'):'')+
+      '<textarea>'+esc(text)+'</textarea>'+
+      '<button type="button" class="rp-copy">文章をコピー</button><span class="rp-copy-done"></span>'+
+    '</div>';
+  host.querySelector('.rp-copy').addEventListener('click', function(){
+    var ta=host.querySelector('textarea');
+    var done=host.querySelector('.rp-copy-done');
+    function ok(){ done.textContent='コピーしました'; setTimeout(function(){done.textContent='';},2000); }
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(ta.value).then(ok, function(){ ta.select(); document.execCommand('copy'); ok(); });
+    } else { ta.select(); document.execCommand('copy'); ok(); }
+  });
+}
+
+/* --- 返戻への再請求 --- */
+var HENREI=[
+  {t:'負傷原因が不明確・具体性不足', k:'genin'},
+  {t:'受診が遅い（負傷日と初検日が離れている）', k:'okure'},
+  {t:'3部位以上の原因の書き分け不足', k:'tabui'},
+  {t:'負傷名と原因の整合性に疑義', k:'seigo'},
+  {t:'記載不備（日数・金額・署名など）', k:'kisai'}
+];
+function henreiDraft(k){
+  var partLines=S.parts.length
+    ? S.parts.map(function(p){ return '・'+p+'：'+(S.place&&S.action?(S.place+'で'+S.action.t+'際に受傷'):'（受傷のしかたを部位ごとに記載）'); }).join('\n')
+    : '・（STEP 1で部位を選択してください）';
+  var map={
+    genin:{
+      title:'再請求の補足文（負傷原因の補記）',
+      points:['原因文に「いつ・どこで・どうして」の3要素が入っているか','全部位の受傷機転に触れているか','施術録の記載と一字一句レベルで矛盾がないか'],
+      text:'【療養費支給申請書の再請求にあたっての補足】\n患者氏名：'+rpName()+'\n\n標記申請書の負傷原因について、下記のとおり補記のうえ再請求いたします。\n\n負傷原因：'+rpCause()+'\n初検時の症状：'+rpSyms()+'を確認し、'+rpInjury()+'と判断して施術を開始しております。\n\n上記は施術録の記載に基づくものです。ご査収のほどお願い申し上げます。'
+    },
+    okure:{
+      title:'再請求の補足文（受診が遅れた理由）',
+      points:['遅れた理由は必ず患者本人に確認する（下書きの理由はよくある例）','負傷日・初検日が施術録と一致しているか'],
+      text:'【受診が遅れた理由についての補記】\n患者氏名：'+rpName()+'\n負傷日：'+rpDate()+'\n\n負傷日から初検日までに間隔がある理由について、下記のとおり補記いたします。\n\n負傷当日は自宅で安静にして様子を見ておりましたが、疼痛が軽減せず'+rpSyms()+'が続いたため、当院を受診したものです（患者本人からの聴取による）。\n\n※この理由は一例です。必ず患者本人に事実を確認し、施術録に記載のうえ、事実に合わせて修正してから提出してください。'
+    },
+    tabui:{
+      title:'再請求の補足文（部位ごとの原因の書き分け）',
+      points:['3部位以上は「どの部位に・どう力が加わったか」を1部位1行で書き分ける','2026年7月改定で新設の逓減は2部位目80%のみ（3部位目60%は従来どおり）'],
+      text:'【負傷部位ごとの原因の補記】\n患者氏名：'+rpName()+'\n\n負傷部位ごとの受傷機転を下記のとおり補記いたします。\n\n'+partLines+'\n\n同一の動作による負傷ですが、部位ごとに加わった外力が異なるため、上記のとおり書き分けております。施術録の記載に基づくものです。\n\n※下書きの受傷機転は共通文です。部位ごとに「どう力が加わったか」を具体的に書き分けてから提出してください。'
+    },
+    seigo:{
+      title:'再請求の補足文（負傷名と原因の整合性）',
+      points:['受傷機転から当該の負傷名に至る流れが自然につながっているか','医師の診断が必要な負傷（骨折・脱臼）でないか'],
+      text:'【負傷名と負傷原因の対応についての補記】\n患者氏名：'+rpName()+'\n\n負傷名（'+rpInjury()+'）と負傷原因の対応について、下記のとおり補記いたします。\n\n'+rpCause()+'\n\n上記の受傷機転により'+(S.parts.length?S.parts.join('・'):'（部位）')+'に外力が加わり、'+rpSyms()+'を認めたものです。負傷名と受傷機転に相違はありません。'
+    },
+    kisai:{
+      title:'記載不備の点検リスト（修正して再請求）',
+      points:['施術日・日数が施術録と一致しているか','金額・逓減（2部位目80%・3部位目60%）の計算','委任欄の署名（患者の自筆が原則）','負傷年月日・初検年月日の記入もれ'],
+      text:'【記載不備の修正について】\n患者氏名：'+rpName()+'\n\nご指摘の記載不備について、下記のとおり修正のうえ再請求いたします。\n\n修正箇所：（返戻通知のご指摘に沿って、ここに修正内容を記入してください）\n\n修正後の記載は施術録と照合済みです。ご査収のほどお願い申し上げます。'
+    }
+  };
+  var d=map[k];
+  draftBox('henrei-out', d.title, d.points, d.text);
+}
+
+/* --- 患者照会への回答 --- */
+var SHOKAI=[
+  {t:'負傷の原因・経緯について', k:'genin'},
+  {t:'通院状況・施術内容について', k:'tsuin'},
+  {t:'負傷部位・症状の経過について', k:'keika'}
+];
+function shokaiDraft(k){
+  var head='【保険者様からの照会に対する回答（下書き）】\n患者氏名：'+rpName()+'\n\n照会いただきました件について、施術録の記載に基づき下記のとおり回答いたします。\n\n';
+  var foot='\n\n以上、施術録に基づきご回答申し上げます。ご不明の点がございましたらお問い合わせください。';
+  var map={
+    genin:{
+      title:'回答文の下書き（負傷の原因・経緯）',
+      points:['回答は施術録の記載と完全に一致させる','患者本人への照会と食い違わないよう、来院時に一声かける'],
+      text:head+'1．負傷の原因\n'+rpCause()+'\n\n2．判断の根拠\n初検時に'+rpSyms()+'を認め、'+rpInjury()+'と判断して施術を開始いたしました。'+foot
+    },
+    tsuin:{
+      title:'回答文の下書き（通院状況・施術内容）',
+      points:['通院日の一覧は施術録から正確に転記する（記憶で書かない）','施術内容は算定した項目と一致させる'],
+      text:head+'1．初検日\n'+rpDate()+'ごろ負傷、初検はその後の来院日です（施術録から正確な日付を転記してください）。\n\n2．施術内容\n'+rpOps()+'を実施しております。\n\n3．通院日\n（施術録から通院日の一覧を転記してください）'+foot
+    },
+    keika:{
+      title:'回答文の下書き（負傷部位・症状の経過）',
+      points:['「著変なし」が長期間続く記載は頻回・長期の照会につながりやすい——経過は具体的に','症状固定・治癒の判断根拠を書けるか確認'],
+      text:head+'1．負傷部位\n'+(S.parts.length?S.parts.join('・'):'（部位）')+'（'+rpInjury()+'）\n\n2．現在の経過\n'+rpProg()+'。\n\n3．今後の見込み\n'+(S.next?('次回は'+S.next+'の来院を予定しております。'):'（今後の施術方針を記載してください）')+foot
+    }
+  };
+  var d=map[k];
+  draftBox('shokai-out', d.title, d.points, d.text);
+}
+
+/* --- 交通事故・自賠責 --- */
+var JIKO_CHECK=[
+  '事故の日時・場所・状況を聴取した（警察への届出の有無も確認）',
+  '相手方の氏名・連絡先・自賠責/任意保険会社と担当者名を控えた',
+  '保険会社へ施術開始の連絡をした（支払い対応の確認）',
+  '健康保険を使う場合＝「第三者行為による傷病届」を保険者へ提出する案内をした',
+  '医師の診断を確認した（症状固定・後遺障害の判断は医師が行う）',
+  '施術録に事故状況を詳しく記載した（過失割合の争いに備える）'
+];
+function renderJiko(){
+  var host=document.getElementById('jiko-check');
+  host.innerHTML='<div class="jk-prog" id="jk-prog"></div><div class="jk-list" id="jk-list"></div>';
+  var list=document.getElementById('jk-list');
+  JIKO_CHECK.forEach(function(txt){
+    var lb=document.createElement('label');
+    lb.innerHTML='<input type="checkbox"><span>'+esc(txt)+'</span>';
+    lb.querySelector('input').addEventListener('change', function(){
+      lb.classList.toggle('done', this.checked);
+      var n=list.querySelectorAll('input:checked').length;
+      document.getElementById('jk-prog').textContent='確認済み '+n+'／'+JIKO_CHECK.length+'項目';
+    });
+    list.appendChild(lb);
+  });
+  document.getElementById('jk-prog').textContent='確認済み 0／'+JIKO_CHECK.length+'項目';
+
+  var note=(S.kind!=='traffic')
+    ? '<div class="alert info" style="margin-bottom:0;">いまの受付はSTEP 1で「交通事故によるケガ」以外が選ばれています。交通事故を選ぶと、この患者の入力内容で下書きします（下は現在の入力値を仮に差し込んだ文章です）。</div>'
+    : '';
+  document.getElementById('jiko-out').innerHTML=note;
+  var wrap=document.createElement('div');
+  document.getElementById('jiko-out').appendChild(wrap);
+  wrap.id='jiko-draft-host';
+  draftBoxJiko();
+}
+function draftBoxJiko(){
+  var text='【施術経過のご報告（下書き）】\n（保険会社名）御中\n\n貴社お取り扱いの下記の方について、施術経過をご報告いたします。\n\n患者氏名：'+rpName()+'\n事故日（負傷日）：'+rpDate()+'\n負傷名：'+rpInjury()+'\n主な症状：'+rpSyms()+'\n\n施術内容：'+rpOps()+'\n現在の経過：'+rpProg()+'\n今後の見込み：'+(S.next?('次回は'+S.next+'の来院を予定しております。'):'（今後の施術方針を記載してください）')+'\n\n※症状固定および後遺障害の判断は医師が行うものです。本報告は当院の施術録の記載に基づきます。';
+  draftBox('jiko-draft-host', '保険会社向け・施術経過報告書', ['事故日・初検日・通院日は施術録から正確に転記','症状固定・後遺障害に踏み込んだ表現はしない（医師の領分）'], text);
+}
+
+/* --- STEP7 の結線（サブタブ・理由チップ） --- */
+(function(){
+  var tabs=document.getElementById('rp-tabs');
+  tabs.addEventListener('click', function(ev){
+    var b=ev.target.closest('[data-rp]');
+    if(!b) return;
+    Array.prototype.forEach.call(tabs.children, function(x){x.classList.remove('on');});
+    b.classList.add('on');
+    var k=b.getAttribute('data-rp');
+    ['henrei','shokai','jiko'].forEach(function(s){
+      document.getElementById('rp-'+s).hidden=(s!==k);
+    });
+    if(k==='jiko') renderJiko();
+  });
+  function pick(hostId, items, onPick){
+    var host=document.getElementById(hostId);
+    items.forEach(function(it){
+      var b=document.createElement('button');
+      b.type='button'; b.textContent=it.t;
+      b.addEventListener('click', function(){
+        Array.prototype.forEach.call(host.children, function(x){x.classList.remove('on');});
+        b.classList.add('on');
+        onPick(it.k);
+      });
+      host.appendChild(b);
+    });
+  }
+  pick('c-henrei', HENREI, henreiDraft);
+  pick('c-shokai', SHOKAI, shokaiDraft);
+})();
+
 /* 申請書の見本（実物の様式ではありません。全面に「見本」透かし） */
 function renderSheet(p){
   var host=document.getElementById('sheet-host');
@@ -6383,7 +6747,7 @@ document.querySelectorAll('[data-go]').forEach(function(b){
 });
 var navBtns=document.querySelectorAll('#stepnav button');
 function spy(){
-  var ids=['st1','st2','st3','st4','st5'];
+  var ids=['st1','st2','st3','st4','st5','st6','st7'];
   var cur=0;
   ids.forEach(function(id, i){
     var el=document.getElementById(id);
