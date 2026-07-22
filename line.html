@@ -309,12 +309,26 @@ function choices(items, onPick, opt){
 }
 function clearChoices(){ quick.innerHTML=''; }
 
+/* ---- 通し実演（予約ボードから引き継いだ患者・同一ブラウザ内のみ） ---- */
+function getStory(){
+  var s=null;
+  try{ s=JSON.parse(localStorage.getItem('jd_story')||'null'); }catch(e){}
+  if(!s || s.v!==1) return null;
+  if(!s.t || (Date.now()-s.t) > 2*3600*1000){ try{ localStorage.removeItem('jd_story'); }catch(e){} return null; }
+  return s;
+}
+function plain(v){ return String(v||'').replace(/[<>&"]/g,''); }
+
 /* ---- 会話の流れ ---- */
 function start(){
   chat.innerHTML=''; clearChoices();
   S={ kind:null, when:null, place:null, action:null, parts:[], syms:[], hist:[] };
   renderSide();
-  bot('こんにちは、サンプル接骨院です🙂\nご来院前の受付をお手伝いします。\n<b>今日はどうされましたか？</b>', function(){
+  var story=getStory();
+  var greet = story
+    ? plain(story.short)+'様、本日'+plain(story.time)+'のご予約ありがとうございます（担当：'+plain(story.staff)+'）🙂\nご来院前に問診にお答えいただくと、受付がスムーズです。\n<b>今日はどうされましたか？</b>'
+    : 'こんにちは、サンプル接骨院です🙂\nご来院前の受付をお手伝いします。\n<b>今日はどうされましたか？</b>';
+  bot(greet, function(){
     choices([
       {t:'ケガをした', k:'acute'},
       {t:'骨折したかもしれない', k:'fract'},
@@ -676,6 +690,12 @@ document.getElementById('go-handoff').addEventListener('click', function(){
     parts:S.parts.slice(), syms:S.syms.slice(), hist:S.hist.slice(),
     cause:(S.kind && S.kind!=='chronic') ? buildCause() : null
   };
+  var story=getStory();
+  if(story){
+    payload.name=plain(story.name)+'（サンプル）';
+    payload.story=true;
+    try{ localStorage.removeItem('jd_story'); }catch(e){}
+  }
   try{ localStorage.setItem('jd_handoff', JSON.stringify(payload)); }catch(e){}
   location.href='app.html';
 });
