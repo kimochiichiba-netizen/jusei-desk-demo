@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="data:,">
+<title>JUSEI DESK 予約ボード｜LINE予約×担当割り デモ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Oswald:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1c2430; --sub:#5a6572; --line:#d4d9df; --stroke:#c4ccd4;
+    --accent:#1660a8; --deep:#0d3a66; --soft:#f2f5f8;
+    --ok:#1c7c46; --warn:#b23f30; --amber:#a8620d;
+    --hoken:#dbe9f7; --hokenb:#1660a8;
+    --jihi:#e7f3e9; --jihib:#1c7c46;
+    --jiko:#fdeaea; --jikob:#b23f30;
+    --kyosei:#f4ecfb; --kyoseib:#7a3fa8;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:#eef1f4;color:var(--ink);font-family:'Noto Sans JP',sans-serif;font-size:14px;line-height:1.7;}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 14px 40px;}
+  header{background:var(--deep);color:#fff;padding:20px 0 16px;}
+  header .wrap{padding-bottom:0;}
+  .brand{font-family:'Oswald','Noto Sans JP',sans-serif;font-size:13px;letter-spacing:.22em;color:#9fc0dd;}
+  h1{margin:2px 0 4px;font-size:21px;}
+  h1 small{font-size:12px;font-weight:400;color:#c8d8e6;margin-left:10px;}
+  .demo-note{background:#fff7e0;border:1px solid #e3cf8e;padding:9px 14px;font-size:11.5px;margin:14px 0;line-height:1.6;}
+  .backlink{font-size:12px;margin:10px 0 0;}
+
+  .tabs{display:flex;gap:0;margin:16px 0 0;border-bottom:2px solid var(--deep);flex-wrap:wrap;}
+  .tabs button{border:1px solid var(--line);border-bottom:0;background:#fff;padding:11px 20px;font-size:13.5px;
+    font-weight:700;cursor:pointer;font-family:inherit;color:var(--sub);}
+  .tabs button.on{background:var(--deep);color:#fff;border-color:var(--deep);}
+  .panel{background:#fff;border:1px solid var(--line);border-top:0;padding:18px;}
+  h2{font-size:15px;margin:0 0 10px;color:var(--deep);}
+  .lead{font-size:12.5px;color:var(--sub);margin:0 0 14px;}
+
+  /* KPI */
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:8px;}
+  @media(max-width:760px){.kpis{grid-template-columns:1fr 1fr;}}
+  .kpi{border:1.5px solid var(--line);padding:10px 12px;background:#fff;}
+  .kpi .k{font-size:11px;font-weight:700;color:var(--sub);}
+  .kpi .v{font-family:'Oswald','Noto Sans JP',sans-serif;font-size:26px;line-height:1.15;color:var(--deep);}
+  .kpi .v small{font-size:11px;font-family:'Noto Sans JP';color:var(--sub);}
+  .kpi.hl{border-color:var(--ok);background:#f4faf6;}
+  .kpi.hl .v{color:var(--ok);}
+  .groupline{font-size:12px;border-left:3px solid var(--accent);background:#f2f7fc;padding:8px 11px;margin-bottom:12px;line-height:1.6;}
+
+  /* board */
+  .boardwrap{overflow-x:auto;border:1px solid var(--line);}
+  table.grid{border-collapse:collapse;min-width:960px;width:100%;}
+  table.grid th, table.grid td{border:1px solid #e3e7ec;padding:0;height:34px;font-size:11px;}
+  table.grid thead th{background:var(--deep);color:#fff;font-weight:700;font-size:10.5px;padding:4px 2px;position:sticky;top:0;z-index:2;}
+  table.grid thead th:first-child{position:sticky;left:0;z-index:3;}
+  table.grid td.staff{background:var(--soft);font-weight:700;font-size:12px;padding:4px 8px;white-space:nowrap;position:sticky;left:0;border-right:2px solid var(--stroke);z-index:1;}
+  table.grid td.closed{background:#e6e9ed;}
+  .bar{display:block;height:100%;padding:2px 4px;font-size:10px;line-height:1.25;overflow:hidden;border-left:3px solid;}
+  .bar b{display:block;font-size:10.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .bar.hoken{background:var(--hoken);border-color:var(--hokenb);}
+  .bar.jihi{background:var(--jihi);border-color:var(--jihib);}
+  .bar.jiko{background:var(--jiko);border-color:var(--jikob);}
+  .bar.kyosei{background:var(--kyosei);border-color:var(--kyoseib);}
+  .bar.new{animation:pop .6s ease 4;outline:2px solid var(--ok);}
+  @keyframes pop{0%{filter:brightness(1);}50%{filter:brightness(1.3);}100%{filter:brightness(1);}}
+  .legend{display:flex;gap:14px;font-size:11px;color:var(--sub);margin:8px 0 0;flex-wrap:wrap;}
+  .legend i{display:inline-block;width:12px;height:12px;margin-right:4px;vertical-align:-1px;}
+
+  /* LINE simulation */
+  .simrow{display:grid;grid-template-columns:1fr 340px;gap:14px;margin-top:16px;}
+  @media(max-width:860px){
+    .simrow{grid-template-columns:1fr;}
+    .sim-line{order:-1;}
+  }
+  .simbox{border:1.5px solid var(--line);padding:12px 14px;}
+  .simbox h3{font-size:13px;margin:0 0 8px;color:var(--deep);}
+  .firstbadge{display:inline-block;background:var(--warn);color:#fff;font-size:11px;font-weight:700;
+    padding:2px 10px;border-radius:999px;margin-bottom:6px;}
+  .linebtn{display:block;width:100%;background:#06c755;color:#fff;border:0;padding:13px;font-size:14.5px;
+    font-weight:700;cursor:pointer;font-family:inherit;}
+  .linebtn:hover{filter:brightness(1.06);}
+  .linebtn:disabled{background:#b6bcc2;cursor:default;}
+  .linebtn.pulse{animation:pulse 1.6s ease infinite;}
+  @keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(6,199,85,.55);}50%{box-shadow:0 0 0 10px rgba(6,199,85,0);}}
+  .restart{display:none;width:100%;margin-top:8px;background:#fff;color:var(--accent);border:1.5px solid var(--accent);
+    padding:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;}
+  .restart:hover{background:#f2f7fc;}
+  .chat{background:#7d9bb8;padding:12px;min-height:120px;max-height:320px;overflow-y:auto;margin-top:10px;}
+  .msg{max-width:86%;padding:8px 11px;font-size:12px;line-height:1.55;margin-bottom:8px;border-radius:10px;}
+  .msg.pt{background:#a5e86c;margin-left:auto;border-bottom-right-radius:2px;}
+  .msg.sys{background:#fff;border-bottom-left-radius:2px;}
+  .msg .who{display:block;font-size:10px;color:#3c4650;font-weight:700;margin-bottom:2px;}
+  .oplog{font-size:12px;margin:10px 0 0;padding-left:2px;list-style:none;}
+  .oplog li{margin-bottom:6px;line-height:1.55;}
+  .oplog .zero{color:var(--ok);font-weight:700;}
+  .oplog .link{color:var(--accent);font-weight:700;cursor:pointer;text-decoration:underline;text-underline-offset:2px;}
+  .savedmin{font-size:12.5px;margin-top:8px;border-left:3px solid var(--ok);background:#f1f8f4;padding:8px 11px;}
+  .savedmin b{font-size:16px;color:var(--ok);}
+
+  /* remind */
+  .remind{margin-top:16px;border:1.5px solid var(--line);padding:12px 14px;}
+  .remind table{border-collapse:collapse;width:100%;font-size:12px;}
+  .remind th,.remind td{border:1px solid #e3e7ec;padding:6px 9px;text-align:left;}
+  .remind th{background:var(--soft);font-size:11px;}
+  .tagok{color:var(--ok);font-weight:700;}
+
+  /* coupon */
+  .seg{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:10px 0 14px;}
+  @media(max-width:760px){.seg{grid-template-columns:1fr;}}
+  .seg button{border:1.5px solid var(--line);background:#fff;padding:12px;text-align:left;cursor:pointer;font-family:inherit;}
+  .seg button:hover{border-color:var(--accent);}
+  .seg button.on{border-color:var(--accent);background:#eef4fa;box-shadow:inset 0 0 0 1px var(--accent);}
+  .seg .t{font-weight:700;font-size:13px;display:block;}
+  .seg .n{font-family:'Oswald','Noto Sans JP',sans-serif;font-size:20px;color:var(--deep);}
+  .seg .d{font-size:11px;color:var(--sub);display:block;}
+  .freq{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 14px;}
+  .freq button{border:1.5px solid var(--line);background:#fff;padding:9px 16px;font-size:12.5px;cursor:pointer;font-family:inherit;}
+  .freq button.on{background:var(--accent);color:#fff;border-color:var(--accent);font-weight:700;}
+  .cprow{display:grid;grid-template-columns:1fr 340px;gap:14px;}
+  @media(max-width:860px){.cprow{grid-template-columns:1fr;}}
+  .coupon-preview{background:#7d9bb8;padding:12px;}
+  .cp-card{background:#fff;border-radius:10px;overflow:hidden;max-width:300px;}
+  .cp-head{background:linear-gradient(120deg,var(--deep),var(--accent));color:#fff;padding:14px;}
+  .cp-head .cn{font-size:15px;font-weight:700;}
+  .cp-head .cc{font-size:10.5px;color:#cfe0ee;}
+  .cp-body{padding:12px 14px;font-size:11.5px;line-height:1.6;}
+  .cp-body .limit{color:var(--warn);font-weight:700;font-size:10.5px;}
+  .planline{font-size:12.5px;border-left:3px solid var(--accent);background:#f2f7fc;padding:9px 12px;margin-top:10px;}
+
+  .alert{border-left:3px solid var(--warn);background:#fdf3f2;padding:10px 12px;font-size:11.5px;margin-top:14px;line-height:1.65;}
+  .alert.info{border-left-color:var(--accent);background:#f2f7fc;}
+  .alert b{color:var(--ink);}
+  .comp-list{margin:6px 0 0;padding:0;list-style:none;}
+  .comp-list li{margin-bottom:8px;}
+  .comp-list .hd{display:block;font-weight:700;font-size:12.5px;color:var(--ink);}
+  .comp-list .bd{display:block;font-size:11px;color:var(--sub);line-height:1.6;}
+
+  /* integration */
+  .cmpwrap{overflow-x:auto;}
+  .cmp{border-collapse:collapse;width:100%;min-width:720px;font-size:12.5px;margin-top:8px;}
+  .cmp th,.cmp td{border:1px solid var(--line);padding:9px 12px;text-align:left;vertical-align:top;}
+  .cmp thead th{background:var(--deep);color:#fff;font-size:12px;}
+  .cmp td.h{background:var(--soft);font-weight:700;white-space:nowrap;}
+  .cmp td.now{background:#fbf8f1;}
+  .phase{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px;}
+  @media(max-width:760px){.phase{grid-template-columns:1fr;}}
+  .phase .p{border:1.5px solid var(--line);padding:12px;}
+  .phase .p .no{font-family:'Oswald','Noto Sans JP',sans-serif;font-size:13px;color:var(--accent);font-weight:700;}
+  .phase .p .t{font-weight:700;font-size:13px;margin:2px 0 4px;}
+  .phase .p .d{font-size:11.5px;color:var(--sub);}
+  .minihq{border-collapse:collapse;width:100%;font-size:11px;margin-top:6px;}
+  .minihq th,.minihq td{border:1px solid #e3e7ec;padding:4px 7px;text-align:left;}
+  .minihq th{background:var(--soft);}
+
+  .foot{max-width:1080px;margin:26px auto 0;padding:0 14px;font-size:11px;color:var(--sub);line-height:1.8;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div class="brand">JUSEI DESK — YOYAKU BOARD</div>
+    <h1>予約ボード（LINE予約×担当割り）<small>デモ｜サンプル接骨院</small></h1>
+    <div class="backlink" style="color:#c8d8e6;">関連デモ：<a href="index.html" style="color:#9fc0dd;">受付〜レセプト下書き（本体）</a>　<a href="line.html" style="color:#9fc0dd;">らくらく受付（LINE風）</a></div>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="demo-note">
+    <b>これはデモ画面です。</b>施術者・患者・数値はすべて架空のサンプルです。入力内容はこのブラウザの中だけで処理され、外部へ送信されません（通信は画面表示用フォントの読み込みのみ）。
+    LINEはLINEヤフー株式会社の商標です。本画面のトーク表示は連携イメージであり、同社のサービスそのものではありません。
+  </div>
+
+  <div class="tabs" id="tabs">
+    <button type="button" data-t="board" class="on">予約ボード（本日）</button>
+    <button type="button" data-t="coupon">LINE再来促進（クーポン）</button>
+    <button type="button" data-t="connect">連携のしかた（2つの道）</button>
+  </div>
+
+  <!-- ============ タブ1 予約ボード ============ -->
+  <div class="panel" id="t-board">
+    <h2>スタッフ×時間の担当割りボード — LINE予約がそのまま枠に入る</h2>
+    <p class="lead">いまお使いの予約台帳と同じ「担当者×時間」の見え方のまま、<b>LINEで届いた予約が電話対応ゼロで枠に入る</b>様子の実演です。
+    緑の<b>【LINE予約が届く】</b>ボタンを押すと、患者さまからのLINE予約が1件ずつ届きます（実演シナリオ・5件。指名予約・交通事故の例外対応も含みます）。</p>
+
+    <div class="kpis">
+      <div class="kpi"><span class="k">本日の予約</span><span class="v" id="k-count">—<small> 件</small></span></div>
+      <div class="kpi"><span class="k">稼働率（柔整師の枠）</span><span class="v" id="k-rate">—<small> %</small></span></div>
+      <div class="kpi hl"><span class="k">LINE経由の予約</span><span class="v" id="k-line">0<small> 件</small></span></div>
+      <div class="kpi hl"><span class="k">電話対応の削減（本日）</span><span class="v" id="k-saved">0<small> 分</small></span></div>
+    </div>
+    <div class="groupline">
+      <b>グループ換算（当社想定）：</b>電話予約の対応は約20件/日×3分×25日×10院 ≒ <b>月250時間</b>。半分がLINEに移るだけで<b>約125時間/月</b>の受付時間が、目の前の患者さま対応に戻ります。
+    </div>
+
+    <div class="boardwrap" id="boardwrap">
+      <table class="grid" id="grid"></table>
+    </div>
+    <div class="legend">
+      <span><i style="background:var(--hoken);border-left:3px solid var(--hokenb);"></i>健保（保険施術）</span>
+      <span><i style="background:var(--jihi);border-left:3px solid var(--jihib);"></i>自費</span>
+      <span><i style="background:var(--kyosei);border-left:3px solid var(--kyoseib);"></i>矯正コース</span>
+      <span><i style="background:var(--jiko);border-left:3px solid var(--jikob);"></i>交通事故</span>
+      <span>グレー＝昼休憩・受付外</span>
+    </div>
+
+    <div class="simrow">
+      <div class="simbox">
+        <h3>実演の記録（何が自動で起きたか）</h3>
+        <ul class="oplog" id="oplog">
+          <li>緑のボタンを押すと、ここに「LINE予約→自動で枠に配置」の記録が並びます。</li>
+        </ul>
+        <div class="savedmin" id="savedbox" hidden>
+          電話なら1件あたり約3分（応対・台帳転記・復唱確認）かかっていた作業が <b>0分</b> に。
+          予約の区分（健保・自費・事故）はそのまま<b>受付〜レセプト下書き（本体デモ）</b>へ流れます。
+        </div>
+        <div class="remind">
+          <h3 style="margin:0 0 8px;font-size:13px;color:var(--deep);">前日リマインドの自動送信（無断キャンセル対策）</h3>
+          <table>
+            <thead><tr><th>送信先</th><th>内容</th><th>状態</th></tr></thead>
+            <tbody>
+              <tr><td>明日 9:30 の予約の方</td><td>「明日のご予約のご案内。変更はこのトークから」</td><td class="tagok">自動送信 予定</td></tr>
+              <tr><td>明日 15:00 の予約の方</td><td>同上</td><td class="tagok">自動送信 予定</td></tr>
+              <tr><td>昨日 無断キャンセルの方</td><td>「お加減いかがですか。取り直しはこちら」</td><td class="tagok">自動送信 済み</td></tr>
+            </tbody>
+          </table>
+          <div style="font-size:11px;color:var(--sub);margin-top:6px;">前日リマインドは無断キャンセルを減らす定番の仕組みです（効果は院の状況によります）。空いた枠はその場で他の患者さまの予約に回せます。</div>
+        </div>
+      </div>
+      <div class="simbox sim-line">
+        <h3>患者さまのLINE（実演・登場人物は架空）</h3>
+        <span class="firstbadge" id="firstbadge">① まずはここを押してください</span>
+        <button type="button" class="linebtn pulse" id="sim-btn">LINE予約が届く（実演を1件すすめる）</button>
+        <button type="button" class="restart" id="sim-restart">最初からもう一度（実演をリセット）</button>
+        <div class="chat" id="chat"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ タブ2 クーポン ============ -->
+  <div class="panel" id="t-coupon" hidden>
+    <h2>LINE再来促進 — 来なくなった方に、自動で「思い出してもらう」</h2>
+    <p class="lead">送る相手（セグメント）と頻度を決めるだけで、<b>自費メニュー限定クーポン</b>やご案内を自動配布します。
+    配信→予約→来院まで予約ボードでつながるので、「配って終わり」になりません。</p>
+
+    <div class="seg" id="seg">
+      <button type="button" data-seg="0" class="on">
+        <span class="t">30日以上 来院がない方</span>
+        <span class="n">412<small style="font-size:11px;"> 人</small></span>
+        <span class="d">いわゆる休眠患者。まずはここが最優先</span>
+      </button>
+      <button type="button" data-seg="1">
+        <span class="t">月1回ペースの方</span>
+        <span class="n">268<small style="font-size:11px;"> 人</small></span>
+        <span class="d">通院間隔がのびてきた方への軽いご案内</span>
+      </button>
+      <button type="button" data-seg="2">
+        <span class="t">矯正コースを終えた方</span>
+        <span class="n">57<small style="font-size:11px;"> 人</small></span>
+        <span class="d">メンテナンスコース（自費）への橋渡し</span>
+      </button>
+    </div>
+
+    <div style="font-size:12.5px;font-weight:700;color:var(--deep);">配信の頻度（お一人への月あたり回数の上限）</div>
+    <div class="freq" id="freq">
+      <button type="button" data-f="w1" class="on">月1回</button>
+      <button type="button" data-f="w2">月2回</button>
+      <button type="button" data-f="m2">月2〜3回</button>
+    </div>
+
+    <div class="cprow">
+      <div>
+        <div class="planline" id="planline"></div>
+        <div class="alert info" style="margin-top:10px;"><b>効果はボードで自動追跡</b>
+        クーポンを受け取った方が予約すると、予約ボードに「クーポン経由」の印がつきます。
+        「何人に届いて→何人が予約して→何人が来院したか」が数字で残るので、配る内容と頻度を毎月改善できます。</div>
+        <div class="alert"><b>コンプライアンス設計（ここが当社の作り込みです）</b>
+          <ul class="comp-list">
+            <li><span class="hd">保険の割引には使いません</span>
+              <span class="bd">受領委任のルールで一部負担金の減免・経済上の利益による誘引は禁止されており、違反は受領委任の中止（原則5年間再登録不可）につながります。クーポンは<b>保険と明確に区分された自費メニュー限定</b>です。一般の美容サロン向け配信ツールには健保/自費のこの区分がなく、そのまま一斉配信すると同じリスクに触れるおそれがあります。</span></li>
+            <li><span class="hd">一斉配信ではなく「希望者への個別案内」</span>
+              <span class="bd">柔整の広告ルールでは割引の広告が制限され、LINEの一斉配信も広告と扱われるおそれがあります。配布は<b>「お得情報を受け取る」を自分で選んだ方への個別のご案内</b>に限定します。</span></li>
+            <li><span class="hd">誇大表示なし・いつでも解除できます</span>
+              <span class="bd">根拠のない二重価格などの表示はしません（景品表示法）。配信はブロックでいつでも停止でき、頻度上限を決めて連投しません。※実運用の前に、所属団体・保険者のルール確認をおすすめします。</span></li>
+          </ul>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:12.5px;font-weight:700;color:var(--deep);margin-bottom:6px;">患者さまに届くイメージ</div>
+        <div class="coupon-preview">
+          <div class="cp-card">
+            <div class="cp-head">
+              <div class="cn" id="cp-title">EMS体験 1回分ご招待</div>
+              <div class="cc">サンプル接骨院｜受け取り希望の方への個別のご案内</div>
+            </div>
+            <div class="cp-body" id="cp-body"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ タブ3 連携 ============ -->
+  <div class="panel" id="t-connect" hidden>
+    <h2>いまの予約システムとどうつなぐか — 現状・A案・B案の比較</h2>
+    <p class="lead">どの道でも、院の皆さまの「担当者×時間」の使い勝手は変えません。違いは裏側だけです。</p>
+
+    <div class="cmpwrap">
+    <table class="cmp">
+      <thead><tr><th style="width:90px;"></th><th>現状（サロン向けシステムの活用）</th><th>A案：現行システムの連携機能を活用</th><th>B案：当社のLINE直結予約に置き換え</th></tr></thead>
+      <tbody>
+        <tr><td class="h">仕組み</td>
+          <td class="now">美容サロン向けの予約・カルテ製品を運用。台帳の使いこなしは完成度が高い</td>
+          <td>現行ベンダーのLINE連携機能・API提供の範囲を確認し、その範囲内で自動化</td>
+          <td>予約台帳そのものを当社が構築。LINEトーク内で予約が完結し、受付〜レセプト下書きの事務支援と直結</td></tr>
+        <tr><td class="h">良い点</td>
+          <td class="now">現場が慣れている。追加費用なし</td>
+          <td>現場の画面がそのまま。移行の負担が最小</td>
+          <td>予約・受付・施術録・レセプト準備まで一気通貫。指名・優先枠など貴グループの運用に合わせて改善できる</td></tr>
+        <tr><td class="h">注意点</td>
+          <td class="now">健保・自費・自賠責の区分やレセプトの運用と噛み合わない部分が残る。通知が流れて未読が積み上がる。クーポン機能は柔整の広告・受領委任ルールを想定していない</td>
+          <td>連携範囲がベンダー仕様に縛られる。月額はベンダー費用＋連携費用の二重払いになる</td>
+          <td>台帳の切替日をはさむ（過去データの移行支援は当社が行います）</td></tr>
+        <tr><td class="h">第一歩</td>
+          <td class="now">—</td>
+          <td><b>ベンダーへの確認質問状（当社がすぐ用意します）</b></td>
+          <td>運用ヒアリング→1院でテスト導入</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <p style="font-size:11.5px;color:var(--sub);margin-top:8px;">※現状の欄は「サロン用として優秀な製品を、柔整の保険運用に転用しているために起きること」の整理であり、製品の良し悪しではありません。初期費用はデジタル化・AI導入補助金2026（補助率1/2・1次締切2026年8月25日）の活用をご提案します。採択は審査によります。</p>
+
+    <div class="phase">
+      <div class="p"><div class="no">STEP 1（今日から可能）</div><div class="t">LINE公式アカウントの整備</div>
+        <div class="d">友だち集め・リマインド・クーポン配信はシステム改修なしで先に始められます。ここまでで無断キャンセル対策と再来促進が動き出します。</div></div>
+      <div class="p"><div class="no">STEP 2</div><div class="t">予約の受け口をLINEに</div>
+        <div class="d">A案/B案の決定後、トーク内予約を開始。電話は「LINEが使えない方専用」に集約し、受付の負担を下げます。</div></div>
+      <div class="p"><div class="no">STEP 3</div><div class="t">全10院へ展開＋本部ビュー</div>
+        <div class="d">1〜2院で運用を固めてから全院へ。本部は院別の数字を横並びで確認できます（イメージ↓・全院版は<a href="index.html" style="color:var(--accent);font-weight:700;">本体デモSTEP 6</a>）。
+          <table class="minihq">
+            <thead><tr><th>院（架空）</th><th>稼働率</th><th>LINE予約率</th><th>30日再来率</th></tr></thead>
+            <tbody>
+              <tr><td>中央通り院</td><td>84%</td><td>46%</td><td>61%</td></tr>
+              <tr><td>駅前院</td><td>78%</td><td>52%</td><td>58%</td></tr>
+              <tr><td>南バイパス院</td><td>71%</td><td>38%</td><td>49%</td></tr>
+            </tbody>
+          </table>
+        </div></div>
+    </div>
+
+    <div class="alert info"><b>予約データの扱いについて</b>
+    予約・通院の情報は大切な個人情報です。実運用では、医療情報システムの安全管理ガイドライン（いわゆる3省2ガイドライン）に沿うことを目標にした構成（国内データ保管・アクセス権限・操作履歴）と、利用目的の明示（プライバシーポリシー）をセットでご提案します。</div>
+  </div>
+</div>
+
+<div class="foot">
+  <b>このデモについて</b><br>
+  ・施術者名・患者名・人数・稼働率などの数値はすべて架空のサンプルです。効果の数値は院の状況により異なります。<br>
+  ・本画面は操作イメージのデモであり、実際のLINE送受信は行っていません。入力内容が外部へ送信されることはありません。<br>
+  <b>株式会社気持ち市場</b>（大分県・AI業務自動化／システム開発）
+</div>
+
+<script>
+/* ================= 共通 ================= */
+function esc(s){
+  return String(s).replace(/[&<>"']/g,function(c){
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+  });
+}
+
+/* ================= ボードのデータ（すべて架空） ================= */
+var STAFF=['首藤（柔整師）','安部（柔整師）','後藤（柔整師）','衛藤（柔整師）','矢野（受付・助手）'];
+var EMS_STAFF=4;                                         // 施術（健保・矯正・事故）は柔整師のみ。EMSは助手が担当
+var T0=9*60, T1=18*60+30, STEP=30;                       // 9:00〜18:30 30分刻み
+var LUNCH=[12*60+30, 14*60+30];                          // 12:30〜14:30 休憩
+function slots(){ var a=[]; for(var t=T0;t<T1;t+=STEP) a.push(t); return a; }
+function hhmm(t){ return Math.floor(t/60)+':'+('0'+t%60).slice(-2); }
+function isClosed(t){ return t>=LUNCH[0] && t<LUNCH[1]; }
+
+/* 事前に入っている予約（架空）: s=スタッフ行, t=開始(分), d=枠数, k=区分 */
+var INITIAL_BOOKED=[
+  {s:0,t:540,d:1,k:'hoken',n:'村上様'},{s:0,t:570,d:1,k:'hoken',n:'河野様'},{s:0,t:600,d:1,k:'hoken',n:'姫野様'},
+  {s:0,t:630,d:2,k:'kyosei',n:'甲斐様'},{s:0,t:900,d:1,k:'jiko',n:'小野様'},{s:0,t:960,d:1,k:'hoken',n:'佐藤様'},{s:0,t:1050,d:1,k:'hoken',n:'渡辺様'},
+  {s:1,t:540,d:1,k:'hoken',n:'足立様'},{s:1,t:600,d:1,k:'hoken',n:'田北様'},{s:1,t:660,d:1,k:'jihi',n:'吉良様'},
+  {s:1,t:870,d:1,k:'hoken',n:'工藤様'},{s:1,t:930,d:2,k:'kyosei',n:'釘宮様'},{s:1,t:1020,d:1,k:'hoken',n:'三浦様'},{s:1,t:1080,d:1,k:'hoken',n:'阿南様'},
+  {s:2,t:540,d:1,k:'hoken',n:'岩尾様'},{s:2,t:570,d:1,k:'jiko',n:'橋本様'},{s:2,t:630,d:1,k:'hoken',n:'安東様'},{s:2,t:690,d:1,k:'hoken',n:'羽田野様'},
+  {s:2,t:870,d:1,k:'hoken',n:'秦様'},{s:2,t:930,d:1,k:'hoken',n:'仲摩様'},{s:2,t:990,d:1,k:'jihi',n:'塩月様'},{s:2,t:1080,d:1,k:'hoken',n:'御沓様'},
+  {s:3,t:540,d:2,k:'kyosei',n:'幸様'},{s:3,t:660,d:1,k:'hoken',n:'志賀様'},{s:3,t:690,d:1,k:'jihi',n:'玖珠様'},
+  {s:3,t:870,d:1,k:'hoken',n:'紺田様'},{s:3,t:900,d:1,k:'hoken',n:'恒松様'},{s:3,t:1050,d:1,k:'jiko',n:'麻生様'},
+  {s:4,t:600,d:1,k:'jihi',n:'（EMS）大塚様'},{s:4,t:660,d:1,k:'jihi',n:'（EMS）姫島様'},
+  {s:4,t:930,d:1,k:'jihi',n:'（EMS）平川様'},{s:4,t:1020,d:1,k:'jihi',n:'（EMS）宿利様'}
+];
+var BOOKED=INITIAL_BOOKED.map(function(b){ return Object.assign({},b); });
+var KLABEL={hoken:'健保', jihi:'自費', kyosei:'矯正', jiko:'事故'};
+
+/* LINEから届く予約（実演シナリオ・架空）
+   1健保の基本 → 2指名予約 → 3矯正コース2枠 → 4交通事故（例外対応） → 5クーポン経由（締め） */
+var QUEUE=[
+  {name:'荒金様（新規）', msg:'首が痛くて…今日の夕方あいていますか？', kind:'hoken', d:1, from:16*60,
+   label:'首の痛み（健保・新規）', tail:'→ 受付・原因文の下書きへ自動連携（本体デモ）'},
+  {name:'利光様（再来）', msg:'いつもの後藤先生で、腰の続きをお願いします', kind:'hoken', d:1, from:15*60, prefStaff:2,
+   label:'指名予約（後藤・再来）', tail:'→ 指名担当の空き枠を最優先で確保'},
+  {name:'宇佐美様（再来）', msg:'骨盤矯正の続きをお願いします。午後で。', kind:'kyosei', d:2, from:14*60+30,
+   label:'骨盤矯正コース（60分・2枠）', tail:'→ 連続2枠を自動で確保'},
+  {name:'佐伯様（新規）', msg:'交通事故のむちうちで通院したいのですが…', kind:'jiko', d:1, from:14*60+30, kariYoyaku:true,
+   label:'交通事故（自賠責）', tail:'→ 仮予約で確保。事故状況の確認は受付が電話（例外は人が対応）'},
+  {name:'帆足様（再来）', msg:'クーポン見ました！EMS体験を予約したいです', kind:'jihi', d:1, from:15*60, coupon:true, ems:true,
+   label:'EMS体験（クーポン経由）', tail:'→ 配布→予約→来院がつながった実例。', couponLink:true}
+];
+var qi=0, lineCount=0, savedMin=0;
+
+function canTake(si, q){ return q.ems ? si===EMS_STAFF : si!==EMS_STAFF; }
+
+/* 予約→セルの対応表。枠外・休憩跨ぎ・重複はここで検出して切り詰める */
+function cellMap(){
+  var m={};
+  BOOKED.forEach(function(b){
+    var span=0;
+    for(var i=0;i<b.d;i++){
+      var tt=b.t+i*STEP;
+      if(tt>=T1 || isClosed(tt)){ console.error('予約が枠外/休憩に跨っています:', b.n, hhmm(tt)); break; }
+      if(m[b.s+'_'+tt]){ console.error('予約が重複しています:', b.n, hhmm(tt)); break; }
+      span++;
+    }
+    b._span=span;
+    for(var j=0;j<span;j++) m[b.s+'_'+(b.t+j*STEP)]=(j===0)?b:'cont';
+  });
+  return m;
+}
+
+function renderGrid(newKey){
+  var g=document.getElementById('grid');
+  var ts=slots();
+  var m=cellMap();
+  var h='<thead><tr><th style="min-width:118px;">スタッフ</th>';
+  ts.forEach(function(t){ h+='<th>'+hhmm(t)+'</th>'; });
+  h+='</tr></thead><tbody>';
+  STAFF.forEach(function(st,si){
+    h+='<tr><td class="staff">'+esc(st)+'</td>';
+    for(var i=0;i<ts.length;i++){
+      var t=ts[i], key=si+'_'+t, b=m[key];
+      if(isClosed(t)){ h+='<td class="closed"></td>'; continue; }
+      if(b==='cont') continue;
+      if(b && b._span>0){
+        h+='<td colspan="'+b._span+'" data-key="'+key+'"><span class="bar '+b.k+(key===newKey?' new':'')+'"><b>'+esc(b.n)+'</b>'+KLABEL[b.k]
+          +(b.coupon?'・クーポン':'')+(b.kari?'・仮':'')+(b.pref?'・指名':'')+'</span></td>';
+      } else {
+        h+='<td></td>';
+      }
+    }
+    h+='</tr>';
+  });
+  h+='</tbody>';
+  g.innerHTML=h;
+
+  // KPI（稼働率の分母は柔整師のみ。EMS枠は施術枠と性質が異なるため除外）
+  var open=0, filled=0;
+  STAFF.forEach(function(_,si){
+    if(si===EMS_STAFF) return;
+    slots().forEach(function(t){
+      if(isClosed(t)) return;
+      open++;
+      if(m[si+'_'+t]) filled++;
+    });
+  });
+  document.getElementById('k-count').innerHTML=BOOKED.length+'<small> 件</small>';
+  document.getElementById('k-rate').innerHTML=Math.round(filled/open*100)+'<small> %</small>';
+  document.getElementById('k-line').innerHTML=lineCount+'<small> 件</small>';
+  document.getElementById('k-saved').innerHTML=savedMin+'<small> 分</small>';
+
+  // 新しく入った予約が画面外なら、そこまで自動スクロール（山場を見せる）
+  if(newKey){
+    var cell=g.querySelector('[data-key="'+newKey+'"]');
+    if(cell && cell.scrollIntoView){
+      cell.scrollIntoView({behavior:'smooth', inline:'center', block:'nearest'});
+    }
+  }
+}
+
+/* 空き枠を探す: 指名があれば指名担当を最優先。なければ担当できる人の中で空きの多い順 */
+function findSlot(from, d, q){
+  var m=cellMap();
+  var cand=STAFF.map(function(_,si){
+    var c=0; slots().forEach(function(t){ if(m[si+'_'+t]) c++; });
+    return {si:si, c:c};
+  }).filter(function(x){ return canTake(x.si, q); })
+    .sort(function(a,b){ return a.c-b.c; });
+  if(typeof q.prefStaff==='number'){
+    cand=cand.filter(function(x){ return x.si===q.prefStaff; })
+      .concat(cand.filter(function(x){ return x.si!==q.prefStaff; }));
+  }
+  for(var li=0; li<cand.length; li++){
+    var si=cand[li].si;
+    for(var t=Math.max(from,T0); t+STEP*(d-1)<T1; t+=STEP){
+      var okAll=true;
+      for(var i=0;i<d;i++){
+        var tt=t+i*STEP;
+        if(isClosed(tt) || m[si+'_'+tt] || tt>=T1){ okAll=false; break; }
+      }
+      if(okAll) return {si:si, t:t};
+    }
+  }
+  return null;
+}
+
+function addChat(cls, who, text){
+  var c=document.getElementById('chat');
+  var d=document.createElement('div');
+  d.className='msg '+cls;
+  var w=document.createElement('span');
+  w.className='who'; w.textContent=who;
+  d.appendChild(w);
+  d.appendChild(document.createTextNode(text));   // 本文はtextContent扱い（実配線時のXSS対策と同じ構造）
+  c.appendChild(d);
+  c.scrollTop=c.scrollHeight;
+}
+function chatReset(){
+  document.getElementById('chat').innerHTML='';
+  addChat('sys','サンプル接骨院（自動応答）','友だち追加ありがとうございます。このトークからいつでも予約できます。');
+}
+
+function finishDemo(){
+  var b=document.getElementById('sim-btn');
+  b.disabled=true; b.classList.remove('pulse');
+  b.textContent='実演はここまで';
+  document.getElementById('sim-restart').style.display='block';
+}
+
+document.getElementById('sim-btn').addEventListener('click', function(){
+  var btn=this;
+  if(qi>=QUEUE.length){ finishDemo(); return; }
+  btn.classList.remove('pulse');
+  document.getElementById('firstbadge').style.display='none';
+  btn.disabled=true;                                    // 連打防止（1件ずつ語れるテンポを守る）
+  setTimeout(function(){ if(qi<QUEUE.length) btn.disabled=false; }, 800);
+
+  var q=QUEUE[qi++];
+  addChat('pt', q.name, q.msg);
+  var slot=findSlot(q.from, q.d, q);
+  if(!slot){
+    addChat('sys','サンプル接骨院（自動応答）','本日は満枠のため、空き枠のある日をご案内します（実演ここまで）');
+    if(qi>=QUEUE.length) finishDemo();
+    return;
+  }
+  var booking={s:slot.si, t:slot.t, d:q.d, k:q.kind,
+    n:q.name.replace(/（.*/,'様').replace('様様','様'),
+    coupon:q.coupon, kari:q.kariYoyaku, pref:(typeof q.prefStaff==='number')};
+  BOOKED.push(booking);
+  lineCount++; savedMin+=3;
+  var staffName=STAFF[slot.si].split('（')[0];
+  if(q.kariYoyaku){
+    addChat('sys','サンプル接骨院（自動応答）',
+      '本日 '+hhmm(slot.t)+'〜 で仮予約をお取りしました（担当：'+staffName+'）。交通事故のご状況確認のため、受付より確認のお電話を一度差し上げます。');
+  } else if(typeof q.prefStaff==='number'){
+    addChat('sys','サンプル接骨院（自動応答）',
+      '本日 '+hhmm(slot.t)+'〜 でお取りしました（担当：'+staffName+'・ご指名）。ご来院お待ちしております。');
+  } else {
+    addChat('sys','サンプル接骨院（自動応答）',
+      '本日 '+hhmm(slot.t)+'〜 でお取りしました（担当：'+staffName+'）。変更・キャンセルはこのトークからどうぞ。');
+  }
+  renderGrid(slot.si+'_'+slot.t);
+
+  var log=document.getElementById('oplog');
+  if(qi===1) log.innerHTML='';
+  var li=document.createElement('li');
+  li.appendChild(document.createTextNode('✔ '+q.label+' → '+staffName+' '+hhmm(slot.t)+'枠に自動配置。'));
+  var z=document.createElement('span');
+  z.className='zero'; z.textContent='受付の作業 0分';
+  li.appendChild(z);
+  li.appendChild(document.createTextNode('（電話なら約3分）'+(q.tail||'')));
+  if(q.couponLink){
+    var a=document.createElement('span');
+    a.className='link'; a.textContent='クーポンの設計を見る';
+    a.addEventListener('click', function(){ switchTab('coupon'); });
+    li.appendChild(document.createTextNode('　'));
+    li.appendChild(a);
+  }
+  log.appendChild(li);
+  document.getElementById('savedbox').hidden=false;
+  if(qi>=QUEUE.length) finishDemo();
+});
+
+document.getElementById('sim-restart').addEventListener('click', function(){
+  BOOKED=INITIAL_BOOKED.map(function(b){ return Object.assign({},b); });
+  qi=0; lineCount=0; savedMin=0;
+  var b=document.getElementById('sim-btn');
+  b.disabled=false; b.textContent='LINE予約が届く（実演を1件すすめる）'; b.classList.add('pulse');
+  document.getElementById('firstbadge').style.display='inline-block';
+  this.style.display='none';
+  document.getElementById('savedbox').hidden=true;
+  document.getElementById('oplog').innerHTML='<li>緑のボタンを押すと、ここに「LINE予約→自動で枠に配置」の記録が並びます。</li>';
+  chatReset();
+  renderGrid(null);
+});
+
+/* ================= タブ切替 ================= */
+function switchTab(k){
+  var tabs=document.getElementById('tabs');
+  Array.prototype.forEach.call(tabs.children, function(x){
+    x.classList.toggle('on', x.getAttribute('data-t')===k);
+  });
+  ['board','coupon','connect'].forEach(function(s){
+    document.getElementById('t-'+s).hidden=(s!==k);
+  });
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+document.getElementById('tabs').addEventListener('click', function(ev){
+  var b=ev.target.closest('[data-t]'); if(!b) return;
+  switchTab(b.getAttribute('data-t'));
+});
+
+/* ================= クーポン設定 ================= */
+var OPTIN_RATE=0.24;                                   // 希望登録率の仮定（24%）
+var SEGS=[
+  {n:412, title:'EMS体験 1回分ご招待', body:'しばらくお会いできていない方へ。腰まわりの筋力ケア「EMS」を一度お試しください。'},
+  {n:268, title:'メンテナンス整体のご案内', body:'前回のご来院から少し間があいた方へ。おからだの状態チェックもご一緒にどうぞ。'},
+  {n:57, title:'矯正後メンテナンスコースご案内', body:'コース修了おつかれさまでした。良い状態を保つための月1メンテナンス（自費）のご案内です。'}
+];
+var PER_MONTH={w1:1, w2:2, m2:2.5};                    // お一人への月あたり配信回数
+var FREQ_LABEL={w1:'月1回', w2:'月2回', m2:'月2〜3回'};
+var segIx=0, freqKey='w1';
+function renderPlan(){
+  var s=SEGS[segIx];
+  var optin=Math.round(s.n*OPTIN_RATE);
+  var monthly=Math.round(optin*PER_MONTH[freqKey]);
+  document.getElementById('cp-title').textContent=s.title;
+  var body=document.getElementById('cp-body');
+  body.innerHTML='';
+  body.appendChild(document.createTextNode(s.body));
+  body.appendChild(document.createElement('br'));
+  var lim=document.createElement('span');
+  lim.className='limit';
+  lim.textContent='※自費メニュー専用。保険施術のお支払いには使えません。';
+  body.appendChild(lim);
+  body.appendChild(document.createElement('br'));
+  body.appendChild(document.createTextNode('有効期限：発行から30日／このトークの「予約する」からどうぞ。'));
+  document.getElementById('planline').innerHTML=
+    '<b>配信計画（自動）：</b>対象 '+s.n+'人のうち「お得情報を受け取る」を希望登録された方 約'+optin+'人へ、お一人 '+FREQ_LABEL[freqKey]+'まで。'
+    +'1か月の配信数 約'+monthly+'通。<span style="color:var(--sub);">（希望登録率を約24%と仮定した試算。同じ方への連投はしません）</span>';
+}
+document.getElementById('seg').addEventListener('click', function(ev){
+  var b=ev.target.closest('[data-seg]'); if(!b) return;
+  Array.prototype.forEach.call(this.children, function(x){x.classList.remove('on');});
+  b.classList.add('on'); segIx=+b.getAttribute('data-seg'); renderPlan();
+});
+document.getElementById('freq').addEventListener('click', function(ev){
+  var b=ev.target.closest('[data-f]'); if(!b) return;
+  Array.prototype.forEach.call(this.children, function(x){x.classList.remove('on');});
+  b.classList.add('on'); freqKey=b.getAttribute('data-f'); renderPlan();
+});
+
+chatReset();
+renderGrid(null);
+renderPlan();
+</script>
+</body>
+</html>
