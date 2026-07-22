@@ -6809,6 +6809,7 @@ function insertNote(html){
   var ACTION_MAP={'階段を踏み外した':'階段を踏み外した','つまずいて転倒した':'段差でつまずき転倒','重い物を持ち上げた':'重い荷物を持ち上げた','急に振り向いた':'急に振り向いた','運動中にひねった':'ジャンプの着地','ぶつかった':'人・物と接触した'};
 
   clearMulti('c-parts'); clearMulti('c-sym');
+  if(p.name) document.getElementById('p-name').value=p.name;   // 通し実演: 予約ボードの患者名を引き継ぐ
   if(p.dateISO) document.getElementById('p-date').value=p.dateISO;
   clickChip('c-kind', KIND_LABEL[p.kind]||KIND_LABEL.acute);
   if(p.place) clickChip('c-place', p.place);
@@ -6829,7 +6830,13 @@ function insertNote(html){
     else { checkCause(); renderRecord(); renderBoard(); }
   }
 
-  insertNote('<b>らくらく受付から引き継ぎました</b>トークの回答が受付・原因文に反映されています（このブラウザ内での受け渡しで、外部送信はありません）。');
+  if(p.story){
+    insertNote('<b>通し実演中：'+esc(String(p.name||'').replace('（サンプル）',''))+'様</b>'
+      +'LINE予約（予約ボード）→ 来院前の問診（らくらく受付）→ この画面の受付・原因文まで、同じ患者さんで自動でつながりました。'
+      +'このままSTEP 3の施術録 → STEP 4の料金 → <b>STEP 5の月末ボードに「本日受付」として載る</b>ところまでご覧ください（このブラウザ内での受け渡しで、外部送信はありません）。');
+  } else {
+    insertNote('<b>らくらく受付から引き継ぎました</b>トークの回答が受付・原因文に反映されています（このブラウザ内での受け渡しで、外部送信はありません）。');
+  }
 })();
 
 /* ---- 入力の自動保存・復元（この端末のブラウザ内のみ。リロードしても消えない） ---- */

@@ -399,7 +399,7 @@ var KLABEL={hoken:'健保', jihi:'自費', kyosei:'矯正', jiko:'事故'};
    1健保の基本 → 2指名予約 → 3矯正コース2枠 → 4交通事故（例外対応） → 5クーポン経由（締め） */
 var QUEUE=[
   {name:'荒金様（新規）', msg:'首が痛くて…今日の夕方あいていますか？', kind:'hoken', d:1, from:16*60,
-   label:'首の痛み（健保・新規）', tail:'→ 受付・原因文の下書きへ自動連携（本体デモ）'},
+   label:'首の痛み（健保・新規）', tail:'→ 受付・原因文の下書きへ自動連携（本体デモ）', storyName:'荒金 陽太', storyShort:'荒金'},
   {name:'利光様（再来）', msg:'いつもの後藤先生で、腰の続きをお願いします', kind:'hoken', d:1, from:15*60, prefStaff:2,
    label:'指名予約（後藤・再来）', tail:'→ 指名担当の空き枠を最優先で確保'},
   {name:'宇佐美様（再来）', msg:'骨盤矯正の続きをお願いします。午後で。', kind:'kyosei', d:2, from:14*60+30,
@@ -576,6 +576,22 @@ document.getElementById('sim-btn').addEventListener('click', function(){
     a.addEventListener('click', function(){ switchTab('coupon'); });
     li.appendChild(document.createTextNode('　'));
     li.appendChild(a);
+  }
+  if(q.storyName){
+    // 通し実演: この患者のまま らくらく受付（来院前問診）→ 本体（受付〜レセプト）へつなぐ
+    var st=document.createElement('span');
+    st.className='link'; st.textContent='▶ この患者さんで通し実演：来院前の問診へ';
+    st.addEventListener('click', function(){
+      try{
+        localStorage.setItem('jd_story', JSON.stringify({
+          v:1, t:Date.now(), name:q.storyName, short:q.storyShort,
+          time:hhmm(slot.t), staff:staffName
+        }));
+      }catch(e){}
+      location.href='line.html';
+    });
+    li.appendChild(document.createTextNode('　'));
+    li.appendChild(st);
   }
   log.appendChild(li);
   document.getElementById('savedbox').hidden=false;
