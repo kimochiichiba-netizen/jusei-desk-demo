@@ -232,7 +232,7 @@
     <div class="next">
       ここから先（施術録12項目の下書き・2026年7月改定対応の料金計算・月末レセプトボード）は<b>事務アシスタント本体</b>で続きます。
       <button class="gobig" id="go-handoff" type="button">この内容を引き継いで本体デモを開く →</button>
-      <span style="font-size:11px;color:#9aa5b1;">トークの回答（部位・症状・負傷原因文など）が本体のSTEP1〜2に自動で入った状態で開きます。引き継がずに開く場合は <a href="index.html">こちら</a>。予約の実演は <a href="yoyaku.html">予約ボード（LINE予約×担当割り）</a> へ。このデモの文章はルールベースの組み立てです。実運用ではAIを接続し、自由入力の会話からも下書きを作れます（API契約が必要）。</span>
+      <span style="font-size:11px;color:#9aa5b1;">トークの回答（部位・症状・負傷原因文など）が本体のSTEP1〜2に自動で入った状態で開きます。引き継がずに開く場合は <a href="app.html">こちら</a>。予約の実演は <a href="yoyaku.html">予約ボード（LINE予約×担当割り）</a> へ。このデモの文章はルールベースの組み立てです。実運用ではAIを接続し、自由入力の会話からも下書きを作れます（API契約が必要）。</span>
     </div>
   </div>
 
@@ -677,7 +677,7 @@ document.getElementById('go-handoff').addEventListener('click', function(){
     cause:(S.kind && S.kind!=='chronic') ? buildCause() : null
   };
   try{ localStorage.setItem('jd_handoff', JSON.stringify(payload)); }catch(e){}
-  location.href='index.html';
+  location.href='app.html';
 });
 
 document.getElementById('restart').addEventListener('click', start);
