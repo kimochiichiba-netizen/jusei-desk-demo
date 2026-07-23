@@ -48,6 +48,20 @@
   .msg.mine{justify-content:flex-end;}
   .msg.mine .bubble{background:var(--mine);border-radius:12px;border-top-right-radius:2px;}
   .msg .bubble b{color:var(--deep);}
+  /* トーク内の基本情報フォーム（問診票をLINEだけで完成させる） */
+  .bubble.pform{max-width:86%;}
+  .pform b{display:block;margin-bottom:6px;color:var(--deep);}
+  .pform label{display:block;font-size:11px;font-weight:700;color:var(--sub);margin-bottom:7px;}
+  .pform label input[type=text],.pform label input[type=tel],.pform label input[type=date]{
+    display:block;width:100%;border:1px solid var(--line);padding:8px 9px;font-size:13px;margin-top:2px;
+    font-family:inherit;box-sizing:border-box;}
+  .pform .pf-consent{display:flex;gap:7px;align-items:flex-start;font-weight:400;font-size:11px;line-height:1.55;margin:9px 0;}
+  .pform .pf-consent input{margin-top:2px;accent-color:var(--accent);}
+  .pform .pf-send{display:block;width:100%;background:var(--accent);color:#fff;border:0;padding:11px;
+    font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;}
+  .pform .pf-send:hover:not(:disabled){filter:brightness(1.1);}
+  .pform .pf-skip{display:block;width:100%;background:#fff;color:var(--sub);border:1px solid var(--line);
+    padding:8px;font-size:11.5px;cursor:pointer;font-family:inherit;margin-top:6px;}
   .chat-quick{background:#f0f2f5;padding:8px;display:flex;flex-wrap:wrap;gap:6px;min-height:52px;border-top:1px solid #d5d9de;}
   .chat-quick button{border:1px solid var(--accent);background:#fff;color:var(--accent);padding:7px 12px;
     font-size:12px;font-weight:700;cursor:pointer;border-radius:14px;transition:.12s;}
@@ -224,7 +238,7 @@
           <button id="m-print" type="button">この問診票を印刷・PDF保存</button>
         </div>
         <div class="hint" style="font-size:10.5px;color:#8b939b;margin-top:8px;">
-          自動入力された内容は来院時に受付・施術者が本人確認のうえ確定します（下書きです）。残り項目は氏名・生年月日など本人確認が必要なものだけ＝タブレットで約1分。
+          トークの回答＋基本情報フォームで、問診票は<b>LINEの中だけで完成</b>します（来院時の記入・受付の転記ゼロ）。内容は来院時に受付・施術者が本人確認のうえ確定します（それまでは下書き扱い）。フォームをスキップした場合のみ、残り項目を来院時にタブレットで記入（約1分）。
         </div>
       </div>
     </div>
@@ -322,7 +336,8 @@ function plain(v){ return String(v||'').replace(/[<>&"]/g,''); }
 /* ---- 会話の流れ ---- */
 function start(){
   chat.innerHTML=''; clearChoices();
-  S={ kind:null, when:null, place:null, action:null, parts:[], syms:[], hist:[] };
+  S={ kind:null, when:null, place:null, action:null, parts:[], syms:[], hist:[],
+      profile:{name:'', kana:'', birth:'', tel:'', addr:'', consent:false, done:false, skipped:false} };
   renderSide();
   var story=getStory();
   var greet = story
@@ -336,7 +351,7 @@ function start(){
       {t:'交通事故にあった', k:'traffic'}
     ], function(it){
       S.kind=it.k; renderSide();
-      if(it.k==='chronic'){ askDone(); return; }
+      if(it.k==='chronic'){ askProfile(); return; }
       askWhen();
     });
   });
@@ -384,9 +399,62 @@ function askHist(){
         if(S.hist.indexOf(h)<0) S.hist.push(h);
       }
       renderSide();
-    }, {done:'選択おわり', onDone:function(){ askDone(); }});
+    }, {done:'選択おわり', onDone:function(){ askProfile(); }});
   });
 }
+
+/* ---- 基本情報（トーク内フォーム）: 問診票をLINEだけで完成させ、来院時の記入・転記をゼロにする ---- */
+function askProfile(){
+  if(S.profile.done || S.profile.skipped){ askDone(); return; }
+  bot('あと1分で<b>問診票が完成</b>します。受付用の基本情報をお願いします🙂\n<span style="font-size:11px;color:#8b939b;">※これはデモです。実在のお名前・ご住所は入力せず、架空の内容でお試しください。入力はこのブラウザ内だけで処理されます。</span>', function(){
+    showProfileForm();
+  });
+}
+function showProfileForm(){
+  clearChoices();
+  var story=getStory();
+  var wrap=document.createElement('div');
+  wrap.className='msg';
+  var av=document.createElement('div'); av.className='avatar'; av.textContent='院';
+  var bub=document.createElement('div'); bub.className='bubble pform';
+  bub.innerHTML=
+    '<b>基本情報のご記入</b>'+
+    '<label>お名前<input type="text" id="pf-name" placeholder="例）大分 花子" value="'+(story?esc(plain(story.name)):'')+'"></label>'+
+    '<label>フリガナ<input type="text" id="pf-kana" placeholder="例）オオイタ ハナコ"></label>'+
+    '<label>生年月日<input type="date" id="pf-birth"></label>'+
+    '<label>お電話番号<input type="tel" id="pf-tel" placeholder="例）090-0000-0000"></label>'+
+    '<label>ご住所<input type="text" id="pf-addr" placeholder="例）大分市○○町1-2-3"></label>'+
+    '<label class="pf-consent"><input type="checkbox" id="pf-consent"><span>個人情報の利用目的（受付・施術・療養費の請求・ご連絡）に同意します</span></label>'+
+    '<button type="button" id="pf-send" class="pf-send">送信して問診票を完成させる</button>'+
+    '<button type="button" id="pf-skip" class="pf-skip">来院時に記入する（スキップ）</button>';
+  wrap.appendChild(av); wrap.appendChild(bub);
+  document.querySelector('.chat-body').appendChild(wrap);
+  document.querySelector('.chat-body').scrollTop=99999;
+
+  function finish(skipped){
+    bub.querySelectorAll('input,button').forEach(function(el){ el.disabled=true; });
+    bub.style.opacity='.75';
+    renderSide();
+    askDone();
+  }
+  bub.querySelector('#pf-send').addEventListener('click', function(){
+    S.profile.name=bub.querySelector('#pf-name').value.trim();
+    S.profile.kana=bub.querySelector('#pf-kana').value.trim();
+    S.profile.birth=bub.querySelector('#pf-birth').value;
+    S.profile.tel=bub.querySelector('#pf-tel').value.trim();
+    S.profile.addr=bub.querySelector('#pf-addr').value.trim();
+    S.profile.consent=bub.querySelector('#pf-consent').checked;
+    S.profile.done=true;
+    mine('基本情報を送信しました');
+    finish(false);
+  });
+  bub.querySelector('#pf-skip').addEventListener('click', function(){
+    S.profile.skipped=true;
+    mine('来院時に記入します');
+    finish(true);
+  });
+}
+
 function askDone(){
   clearChoices();
   renderSide();
@@ -405,8 +473,10 @@ function askDone(){
     msg+='\n\n※お仕事中・通勤中のおけがは<b>労災保険</b>の対象になる場合があります。受付で確認させてください。';
   }
   var mi=monshinInfo();
-  if(mi.filled>0){
-    msg+='\n\n<b>問診票はこちらでほぼ出来上がりました</b>（'+mi.filled+'／'+mi.total+'項目を自動入力）。ご来院時は残り'+mi.rest+'項目（お名前・生年月日など）だけ、受付のタブレットでご記入ください。約1分です。';
+  if(mi.rest===0){
+    msg+='\n\n<b>問診票はこのトークだけで完成しました（'+mi.total+'／'+mi.total+'項目）</b>。ご来院時のご記入はありません。受付では保険証（マイナンバーカード）のご提示だけでスタートできます🙂';
+  } else if(mi.filled>0){
+    msg+='\n\n<b>問診票はこちらでほぼ出来上がりました</b>（'+mi.filled+'／'+mi.total+'項目を入力済み）。ご来院時は残り'+mi.rest+'項目だけ、受付のタブレットでご記入ください。約1分です。';
   }
   bot(msg, function(){
     bot('<span style="font-size:11px;color:#8b939b;">— ここまでの内容が院の受付に届きました（右の画面）。実際の症状の確認・保険適用の最終判断は、ご来院時に施術者が行います —</span>');
@@ -471,6 +541,9 @@ function renderSide(){
 
   var memo=document.getElementById('v-memo');
   var rows=[];
+  if(S.profile.name) rows.push(['氏名', S.profile.name+(S.profile.kana?'（'+S.profile.kana+'）':'')]);
+  if(S.profile.tel) rows.push(['連絡先', S.profile.tel]);
+  if(S.profile.addr) rows.push(['住所', S.profile.addr]);
   var kindName={acute:'急性の外傷', fract:'骨折・脱臼の疑い', chronic:'慢性（自費）', traffic:'交通事故'}[S.kind];
   if(kindName) rows.push(['区分', kindName]);
   if(S.when) rows.push(['いつ', S.when]);
@@ -507,11 +580,17 @@ function monshinRows(){
     {l:'症状',           v:S.syms.length?S.syms.join('・'):null},
     {l:'持病・アレルギー・服薬', v:S.hist.length?S.hist.join('・'):null},
     {l:'保険の入り口の特記', v:(S.kind&&!chronic)?(flags.length?flags.join('／'):'特記なし'):(chronic?'自費（保険請求なし)':null)},
-    {l:'氏名（フリガナ）', v:null, todo:'来院時にご記入'},
-    {l:'生年月日',        v:null, todo:'来院時にご記入'},
-    {l:'連絡先（電話）',  v:null, todo:'来院時にご記入'},
-    {l:'個人情報の利用目的への同意', v:null, todo:'来院時にご確認のうえタップ'}
+    {l:'氏名（フリガナ）', v:S.profile.name?(S.profile.name+(S.profile.kana?'（'+S.profile.kana+'）':'')):null, todo:'来院時にご記入', src:'ご本人入力'},
+    {l:'生年月日',        v:fmtBirth(S.profile.birth), todo:'来院時にご記入', src:'ご本人入力'},
+    {l:'連絡先（電話）',  v:S.profile.tel||null, todo:'来院時にご記入', src:'ご本人入力'},
+    {l:'ご住所',          v:S.profile.addr||null, todo:'来院時にご記入', src:'ご本人入力'},
+    {l:'個人情報の利用目的への同意', v:S.profile.consent?'同意済み（トークで確認）':null, todo:'来院時にご確認のうえタップ', src:'ご本人入力'}
   ];
+}
+function fmtBirth(v){
+  if(!v) return null;
+  var p=v.split('-');
+  return p.length===3 ? (p[0]+'年'+(+p[1])+'月'+(+p[2])+'日') : v;
 }
 function monshinInfo(){
   var rows=monshinRows();
@@ -531,9 +610,11 @@ function renderMonshin(){
   prog.innerHTML=
     '<div class="bar"><i style="width:'+pct+'%"></i></div>'+
     '<span class="pct">'+pct+'%</span>'+
-    '<span class="rest">自動入力 '+mi.filled+'/'+mi.total+'項目・来院後の記入 残り'+mi.rest+'項目（約1分）</span>';
+    (mi.rest===0
+      ? '<span class="rest" style="color:var(--ok);font-weight:700;">トークだけで完成（'+mi.total+'/'+mi.total+'項目）— 来院時の記入・受付の転記はゼロ。受付は保険証確認だけ</span>'
+      : '<span class="rest">入力済み '+mi.filled+'/'+mi.total+'項目・来院後の記入 残り'+mi.rest+'項目（約1分）</span>');
   host.innerHTML=mi.rows.map(function(r){
-    if(r.v) return '<div class="mrow"><span class="ml">'+esc(r.l)+'</span><span class="mv">'+esc(r.v)+'<span class="auto">自動入力</span></span></div>';
+    if(r.v) return '<div class="mrow"><span class="ml">'+esc(r.l)+'</span><span class="mv">'+esc(r.v)+'<span class="auto">'+esc(r.src||'自動入力')+'</span></span></div>';
     return '<div class="mrow todo"><span class="ml">'+esc(r.l)+'</span><span class="mv">'+esc(r.todo||'来院時にご記入')+'</span></div>';
   }).join('');
 }
@@ -610,14 +691,14 @@ function applySpeech(text){
   if(r.syms.length) got.push('症状='+r.syms.join('・'));
   bot('お話から読み取りました：<b>'+ (got.length?esc(got.join('／')):'（読み取れる項目がありませんでした）') +'</b>\n足りないところだけ、続けてお伺いします。', function(){
     clearChoices();
-    if(S.kind==='chronic'){ askDone(); return; }
+    if(S.kind==='chronic'){ askProfile(); return; }
     if(!S.when){ askWhen(); return; }
     if(!S.place){ askPlace(); return; }
     if(!S.action){ askAction(); return; }
     if(!S.parts.length){ askParts(); return; }
     if(!S.syms.length){ askSyms(); return; }
     if(!S.hist.length){ askHist(); return; }
-    askDone();
+    askProfile();
   });
   document.getElementById('voice-text').value='';
 }
@@ -664,6 +745,10 @@ document.getElementById('voice-text').addEventListener('keydown', function(e){
 /* ---- 1つ前の質問に戻る（答えた項目を後ろから1つ消して聞き直す） ---- */
 document.getElementById('back-btn').addEventListener('click', function(){
   clearChoices();
+  if(S.profile.done||S.profile.skipped){
+    S.profile={name:'', kana:'', birth:'', tel:'', addr:'', consent:false, done:false, skipped:false};
+    renderSide(); askProfile(); return;
+  }
   if(S.hist.length){ S.hist=[]; renderSide(); askHist(); return; }
   if(S.syms.length){ S.syms=[]; renderSide(); askSyms(); return; }
   if(S.parts.length){ S.parts=[]; renderSide(); askParts(); return; }
@@ -691,8 +776,11 @@ document.getElementById('go-handoff').addEventListener('click', function(){
     cause:(S.kind && S.kind!=='chronic') ? buildCause() : null
   };
   var story=getStory();
+  var pname=S.profile.name || (story?plain(story.name):null);
+  if(pname){
+    payload.name=pname.indexOf('サンプル')>=0 ? pname : pname+'（サンプル）';
+  }
   if(story){
-    payload.name=plain(story.name)+'（サンプル）';
     payload.story=true;
     try{ localStorage.removeItem('jd_story'); }catch(e){}
   }
